@@ -1,0 +1,21 @@
+include_directories(
+    ${PROJECT_SOURCE_DIR}/include
+    /usr/local/include
+)
+link_directories(/usr/local/lib)
+
+set(tests
+    blocking_queue_test
+)
+
+set(test_libraries
+    gtest
+    gtest_main
+    pthread
+)
+
+foreach(test IN LISTS tests)
+    add_executable(${test} ${test}.cpp)
+    target_link_libraries(${test} ${test_libraries})
+    add_test(${test} ${test})
+endforeach()
