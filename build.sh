@@ -1,8 +1,10 @@
 #!/bin/sh
 
+DIRNAME="build"
+
 cd `dirname "${0}"`
-if [ ! -e build ] ; then
-    mkdir build
+if [ ! -e ${DIRNAME} ] ; then
+    mkdir ${DIRNAME}
 fi
-cd build
+cd ${DIRNAME}
 cmake ../ccl
