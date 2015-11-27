@@ -6,6 +6,7 @@ link_directories(/usr/local/lib)
 
 set(tests
     blocking_queue_test
+    thread_pool_test
 )
 
 set(test_libraries
