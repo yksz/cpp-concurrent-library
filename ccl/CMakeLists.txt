@@ -9,11 +9,11 @@ option(build_examples "Build example programs." OFF)
 
 ### Library
 include_directories(
-    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/src
 )
 
 ### Install
-file(GLOB header_files include/ccl/*.h)
+file(GLOB header_files src/ccl/*.h)
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ccl)
 install(FILES ${header_files} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ccl)
 
