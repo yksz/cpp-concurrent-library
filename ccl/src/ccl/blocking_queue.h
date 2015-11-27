@@ -19,7 +19,7 @@ public:
     void Emplace(T&& element);
     T Pop();
     void Pop(T& element);
-    std::size_t Size();
+    size_t Size();
     bool Empty();
 
 private:
@@ -68,7 +68,7 @@ void BlockingQueue<T>::Pop(T& element) {
 }
 
 template<typename T>
-std::size_t BlockingQueue<T>::Size() {
+size_t BlockingQueue<T>::Size() {
     std::unique_lock<std::mutex> lock(m_mutex);
     return m_queue.size();
 }

@@ -10,7 +10,7 @@ namespace ccl {
 
 class ThreadPool final {
 public:
-    explicit ThreadPool(std::size_t numThreads);
+    explicit ThreadPool(size_t numThreads);
     ~ThreadPool();
     ThreadPool(const ThreadPool&) = delete;
     ThreadPool& operator=(const ThreadPool&) = delete;
@@ -23,8 +23,8 @@ private:
     BlockingQueue<std::function<void()>> m_queue;
 };
 
-inline ThreadPool::ThreadPool(std::size_t numThreads) {
-    for (std::size_t i = 0; i < numThreads; i++) {
+inline ThreadPool::ThreadPool(size_t numThreads) {
+    for (size_t i = 0; i < numThreads; i++) {
         auto worker = [this]() {
             while (true) {
                 std::function<void()> task;
@@ -40,7 +40,7 @@ inline ThreadPool::ThreadPool(std::size_t numThreads) {
 }
 
 inline ThreadPool::~ThreadPool() {
-    for (std::size_t i = 0, n = m_threads.size(); i < n; i++) {
+    for (size_t i = 0, n = m_threads.size(); i < n; i++) {
         m_queue.Push(m_poison);
     }
     for (std::thread& th : m_threads) {
