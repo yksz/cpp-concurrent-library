@@ -5,6 +5,7 @@ include_directories(
 link_directories(/usr/local/lib)
 
 set(tests
+    actor_test
     blocking_queue_test
     thread_pool_test
 )
