@@ -4,6 +4,7 @@
 #include <memory>
 #include <mutex>
 #include <thread>
+#include <boost/any.hpp>
 #include <gtest/gtest.h>
 
 using namespace ccl;
@@ -17,8 +18,10 @@ TEST(Actor, Tell) {
     std::mutex mutex;
 
     // when:
-    Actor actor([&](const std::string& message) {
-        receivedMessage = message;
+    Actor actor([&](const boost::any& message) {
+        if (message.type() == typeid(std::string)) {
+            receivedMessage = boost::any_cast<std::string>(message);
+        }
 
         // notify
         {
@@ -49,25 +52,29 @@ TEST(ActorSystem, SendAndBroadcast) {
 
     // when:
     {
-        auto actor1 = std::make_shared<Actor>([&](const std::string& message) {
-            receivedMessage1 += message;
+        auto actor1 = std::make_shared<Actor>([&](const boost::any& message) {
+            if (message.type() == typeid(std::string)) {
+                receivedMessage1 += boost::any_cast<std::string>(message);
+            }
         });
-        auto actor2 = std::make_shared<Actor>([&](const std::string& message) {
-            receivedMessage2 += message;
+        auto actor2 = std::make_shared<Actor>([&](const boost::any& message) {
+            if (message.type() == typeid(std::string)) {
+                receivedMessage2 += boost::any_cast<std::string>(message);
+            }
         });
         system.Register("/path/actor1", actor1);
         system.Register("/path/actor2", actor2);
     }
-    system.Send("/path/actor1", "foo");
-    system.Send("/path/actor2", "fizz");
+    system.Send("/path/actor1", std::string("foo"));
+    system.Send("/path/actor2", std::string("fizz"));
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    system.Send("/path/actor1", "bar");
-    system.Send("/path/actor2", "bazz");
+    system.Send("/path/actor1", std::string("bar"));
+    system.Send("/path/actor2", std::string("bazz"));
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    system.Broadcast("!");
+    system.Broadcast(std::string("!"));
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
     // then:
-    EXPECT_EQ(receivedMessage1, "foobar!");
-    EXPECT_EQ(receivedMessage2, "fizzbazz!");
+    EXPECT_EQ("foobar!", receivedMessage1);
+    EXPECT_EQ("fizzbazz!", receivedMessage2);
 }

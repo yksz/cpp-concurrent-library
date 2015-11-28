@@ -8,32 +8,33 @@
 #include <queue>
 #include <string>
 #include <thread>
+#include <boost/any.hpp>
 
 namespace ccl {
 
 class Actor final {
 public:
-    explicit Actor(std::function<void(const std::string&)>&& onReceive);
+    explicit Actor(std::function<void(const boost::any&)>&& onReceive);
     ~Actor();
     Actor(const Actor&) = delete;
     Actor& operator=(const Actor&) = delete;
 
-    void Tell(const std::string& message);
+    void Tell(const boost::any& message);
 
 private:
-    std::function<void(const std::string&)> m_onReceive;
+    std::function<void(const boost::any&)> m_onReceive;
     bool m_stopped;
     std::thread* m_thread;
-    std::queue<std::string> m_mailbox;
+    std::queue<boost::any> m_mailbox;
     std::condition_variable m_condition;
     std::mutex m_mutex;
 };
 
-inline Actor::Actor(std::function<void(const std::string&)>&& onReceive)
+inline Actor::Actor(std::function<void(const boost::any&)>&& onReceive)
         : m_onReceive(std::move(onReceive)), m_stopped(false) {
     auto worker = [this]() {
         while (true) {
-            std::string message;
+            boost::any message;
             {
                 std::unique_lock<std::mutex> lock(m_mutex);
                 while (!m_stopped && m_mailbox.empty()) {
@@ -62,7 +63,7 @@ inline Actor::~Actor() {
     m_thread = nullptr;
 }
 
-inline void Actor::Tell(const std::string& message) {
+inline void Actor::Tell(const boost::any& message) {
     {
         std::unique_lock<std::mutex> lock(m_mutex);
         m_mailbox.push(message);
@@ -75,8 +76,8 @@ class ActorSystem final {
 public:
     static ActorSystem& GetInstance();
     void Register(const std::string& address, const std::shared_ptr<Actor>& actor);
-    void Send(const std::string& address, const std::string& message);
-    void Broadcast(const std::string& message);
+    void Send(const std::string& address, const boost::any& message);
+    void Broadcast(const boost::any& message);
 
 private:
     std::map<std::string, std::shared_ptr<Actor>> m_actors;
@@ -98,7 +99,7 @@ inline void ActorSystem::Register(const std::string& address, const std::shared_
     m_actors[address] = actor;
 }
 
-inline void ActorSystem::Send(const std::string& address, const std::string& message) {
+inline void ActorSystem::Send(const std::string& address, const boost::any& message) {
     std::lock_guard<std::mutex> lock(m_mutex);
     if (m_actors.find(address) != m_actors.end()) {
         std::shared_ptr<Actor> actor = m_actors[address];
@@ -106,7 +107,7 @@ inline void ActorSystem::Send(const std::string& address, const std::string& mes
     }
 }
 
-inline void ActorSystem::Broadcast(const std::string& message) {
+inline void ActorSystem::Broadcast(const boost::any& message) {
     std::lock_guard<std::mutex> lock(m_mutex);
     for (auto& pair : m_actors) {
         pair.second->Tell(message);
