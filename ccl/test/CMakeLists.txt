@@ -17,7 +17,7 @@ set(test_libraries
 )
 
 foreach(test IN LISTS tests)
-    add_executable(${test} ${test}.cpp odr_checker.cpp)
+    add_executable(${test} ${test}.cpp odr_check.cpp)
     target_link_libraries(${test} ${test_libraries})
     add_test(${test} ${test})
 endforeach()
