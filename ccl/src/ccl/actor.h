@@ -33,7 +33,7 @@ inline Actor::Actor(std::function<void(const std::string&)>&& onReceive)
         : m_onReceive(std::move(onReceive)), m_stopped(false) {
     auto worker = [this]() {
         while (true) {
-            std::string mail;
+            std::string message;
             {
                 std::unique_lock<std::mutex> lock(m_mutex);
                 while (!m_stopped && m_mailbox.empty()) {
@@ -42,10 +42,10 @@ inline Actor::Actor(std::function<void(const std::string&)>&& onReceive)
                 if (m_stopped && m_mailbox.empty()) {
                     return;
                 }
-                mail = std::move(m_mailbox.front());
+                message = std::move(m_mailbox.front());
                 m_mailbox.pop();
             }
-            m_onReceive(mail);
+            m_onReceive(message);
         }
     };
     m_thread = new std::thread(worker);
@@ -76,16 +76,16 @@ public:
     static ActorSystem& GetInstance();
     void Register(const std::string& address, const std::shared_ptr<Actor>& actor);
     void Send(const std::string& address, const std::string& message);
-    void Broadcast(const std::string& address);
+    void Broadcast(const std::string& message);
 
 private:
+    std::map<std::string, std::shared_ptr<Actor>> m_actors;
+    std::mutex m_mutex;
+
     ActorSystem() = default;
     ~ActorSystem() = default;
     ActorSystem(const ActorSystem&) = delete;
     void operator=(const ActorSystem&) = delete;
-
-    std::map<std::string, std::shared_ptr<Actor>> m_actors;
-    std::mutex m_mutex;
 };
 
 inline ActorSystem& ActorSystem::GetInstance() {

@@ -3,6 +3,8 @@
 #include <thread>
 #include <gtest/gtest.h>
 
+using namespace ccl;
+
 TEST(ThreadPool, Dispatch) {
     // setup:
     const int dispatchCount = 100;
@@ -10,7 +12,7 @@ TEST(ThreadPool, Dispatch) {
 
     // when:
     {
-        ccl::ThreadPool pool(10);
+        ThreadPool pool(10);
         for (int i = 0; i < dispatchCount; i++) {
             pool.Dispatch([&]() { count++; });
         }

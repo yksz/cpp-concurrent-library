@@ -6,6 +6,8 @@
 #include <thread>
 #include <gtest/gtest.h>
 
+using namespace ccl;
+
 TEST(Actor, Tell) {
     // setup:
     const std::string sentMessage = "message";
@@ -15,7 +17,7 @@ TEST(Actor, Tell) {
     std::mutex mutex;
 
     // when:
-    ccl::Actor actor([&](const std::string& message) {
+    Actor actor([&](const std::string& message) {
         receivedMessage = message;
 
         // notify
@@ -43,14 +45,14 @@ TEST(ActorSystem, SendAndBroadcast) {
     // setup:
     std::string receivedMessage1;
     std::string receivedMessage2;
-    ccl::ActorSystem& system = ccl::ActorSystem::GetInstance();
+    ActorSystem& system = ActorSystem::GetInstance();
 
     // when:
     {
-        auto actor1 = std::make_shared<ccl::Actor>([&](const std::string& message) {
+        auto actor1 = std::make_shared<Actor>([&](const std::string& message) {
             receivedMessage1 += message;
         });
-        auto actor2 = std::make_shared<ccl::Actor>([&](const std::string& message) {
+        auto actor2 = std::make_shared<Actor>([&](const std::string& message) {
             receivedMessage2 += message;
         });
         system.Register("/path/actor1", actor1);

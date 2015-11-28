@@ -45,9 +45,11 @@ int Object::m_copyAssignmentCount = 0;
 
 } // unnamed namespace
 
+using namespace ccl;
+
 TEST(BlockingQueue, MoveSemantics) {
     // when:
-    ccl::BlockingQueue<Object> queue;
+    BlockingQueue<Object> queue;
     std::cout << "Push begin\n";
     queue.Emplace(Object());
     std::cout << "Push end\n";
@@ -70,8 +72,8 @@ TEST(BlockingQueue, Pop_Blocking) {
     std::string pushedElement = "element";
 
     // when:
-    ccl::BlockingQueue<std::string> queue;
-    std::thread th([](ccl::BlockingQueue<std::string>& queue, const std::string& element) {
+    BlockingQueue<std::string> queue;
+    std::thread th([](BlockingQueue<std::string>& queue, const std::string& element) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         queue.Push(element);
     }, std::ref(queue), std::ref(pushedElement));
@@ -89,7 +91,7 @@ TEST(BlockingQueue, Push_FunctionObject) {
     int count = 0;
 
     // when:
-    ccl::BlockingQueue<std::function<void()>> queue;
+    BlockingQueue<std::function<void()>> queue;
     queue.Push([&]() {
         count++;
     });
@@ -107,7 +109,7 @@ TEST(BlockingQueue, Emplace_FunctionObject) {
     int count = 0;
 
     // when:
-    ccl::BlockingQueue<std::function<void()>> queue;
+    BlockingQueue<std::function<void()>> queue;
     queue.Emplace([&]() {
         count++;
     });
