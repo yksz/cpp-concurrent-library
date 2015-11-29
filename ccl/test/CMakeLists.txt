@@ -7,6 +7,7 @@ link_directories(/usr/local/lib)
 set(tests
     actor_test
     blocking_queue_test
+    countdown_latch_test
     thread_pool_test
 )
 
