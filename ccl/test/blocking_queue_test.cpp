@@ -122,3 +122,19 @@ TEST(BlockingQueue, Emplace_FunctionObject) {
     // then:
     EXPECT_EQ(1, count);
 }
+
+TEST(BlockingQueue, Clear) {
+    const int count = 100;
+
+    // when:
+    BlockingQueue<int> queue;
+    for (int i = 0; i < count; i++) {
+        queue.Push(i);
+    }
+
+    // and:
+    queue.Clear();
+
+    // then:
+    EXPECT_TRUE(queue.Empty());
+}
