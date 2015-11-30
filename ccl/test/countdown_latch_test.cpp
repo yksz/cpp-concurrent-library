@@ -3,7 +3,6 @@
 #include <thread>
 #include <vector>
 #include <gtest/gtest.h>
-#include <iostream>
 
 using namespace ccl;
 
@@ -15,18 +14,15 @@ TEST(CountdownLatch, AwaitAndCountDown) {
     CountdownLatch latch(count);
     std::vector<std::thread> threads;
     for (int i = 0; i < count; i++) {
-        threads.emplace_back([&]() {
+        std::thread th([&]() {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             latch.CountDown();
         });
+        th.detach();
+        threads.emplace_back(std::move(th));
     }
     latch.Await();
 
     // then:
     EXPECT_EQ(0, latch.GetCount());
-
-    // cleanup:
-    for (std::thread& th : threads) {
-        th.join();
-    }
 }
