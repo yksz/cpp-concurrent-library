@@ -31,8 +31,10 @@ public: // structors
 
     // Perfect forwarding of ValueType
     template<typename ValueType>
-    any(ValueType&& value, typename std::enable_if<!std::is_same<any&, ValueType>::value>::type* = 0)
-            : content(new holder<typename std::remove_reference<ValueType>::type>(static_cast<ValueType&&>(value))) {}
+    any(ValueType&& value,
+            typename std::enable_if<!std::is_same<any&, ValueType>::value>::type* = 0, // disable if value has type `any&`
+            typename std::enable_if<!std::is_const<ValueType>::value>::type* = 0) // disable if value has type `const ValueType&&`
+            : content(new holder<typename std::decay<ValueType>::type>(static_cast<ValueType&&>(value))) {}
 
     ~any() {
         delete content;
@@ -66,6 +68,10 @@ public: // modifiers
 public: // queries
     bool empty() const {
         return !content;
+    }
+
+    void clear() {
+        any().swap(*this);
     }
 
     const std::type_info& type() const {
@@ -145,6 +151,11 @@ template<typename ValueType>
 inline ValueType any_cast(const any& operand) {
     typedef typename std::remove_reference<ValueType>::type nonref;
     return any_cast<const nonref&>(const_cast<any&>(operand));
+}
+
+template<typename ValueType>
+inline ValueType any_cast(any&& operand) {
+    return any_cast<ValueType>(operand);
 }
 
 } // namespace ccl
