@@ -10,7 +10,6 @@ option(build_examples "Build example programs." OFF)
 ### Library
 include_directories(
     ${PROJECT_SOURCE_DIR}/src
-    /usr/local/include
 )
 
 ### Install

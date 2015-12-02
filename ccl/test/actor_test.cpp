@@ -4,8 +4,8 @@
 #include <memory>
 #include <mutex>
 #include <thread>
-#include <boost/any.hpp>
 #include <gtest/gtest.h>
+#include "ccl/any.h"
 
 using namespace ccl;
 
@@ -18,9 +18,9 @@ TEST(Actor, Tell) {
     std::mutex mutex;
 
     // when:
-    Actor actor([&](const boost::any& message) {
+    Actor actor([&](const any& message) {
         if (message.type() == typeid(std::string)) {
-            receivedMessage = boost::any_cast<std::string>(message);
+            receivedMessage = any_cast<std::string>(message);
         }
 
         // notify
@@ -52,14 +52,14 @@ TEST(ActorSystem, SendAndBroadcast) {
 
     // when:
     {
-        auto actor1 = std::make_shared<Actor>([&](const boost::any& message) {
+        auto actor1 = std::make_shared<Actor>([&](const any& message) {
             if (message.type() == typeid(std::string)) {
-                receivedMessage1 += boost::any_cast<std::string>(message);
+                receivedMessage1 += any_cast<std::string>(message);
             }
         });
-        auto actor2 = std::make_shared<Actor>([&](const boost::any& message) {
+        auto actor2 = std::make_shared<Actor>([&](const any& message) {
             if (message.type() == typeid(std::string)) {
-                receivedMessage2 += boost::any_cast<std::string>(message);
+                receivedMessage2 += any_cast<std::string>(message);
             }
         });
         system.Register("/path/actor1", actor1);

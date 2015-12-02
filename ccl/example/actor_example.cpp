@@ -1,7 +1,7 @@
 #include <iostream>
 #include <typeinfo>
-#include <boost/any.hpp>
 #include "ccl/actor.h"
+#include "ccl/any.h"
 
 namespace {
 
@@ -13,20 +13,20 @@ struct Point {
 } // unnamed namespace
 
 int main(void) {
-    auto actor = std::make_shared<ccl::Actor>([](const boost::any& message) {
+    auto actor = std::make_shared<ccl::Actor>([](const ccl::any& message) {
         const std::type_info& type = message.type();
         if (type == typeid(int)) {
-            std::cout << "int: " << boost::any_cast<int>(message) << std::endl;
+            std::cout << "int: " << ccl::any_cast<int>(message) << std::endl;
         } else if (type == typeid(double)) {
-            std::cout << "double: " << boost::any_cast<double>(message) << std::endl;
+            std::cout << "double: " << ccl::any_cast<double>(message) << std::endl;
         } else if (type == typeid(char)) {
-            std::cout << "char: " << boost::any_cast<char>(message) << std::endl;
+            std::cout << "char: " << ccl::any_cast<char>(message) << std::endl;
         } else if (type == typeid(char*)) {
-            std::cout << "char*: " << boost::any_cast<char*>(message) << std::endl;
+            std::cout << "char*: " << ccl::any_cast<char*>(message) << std::endl;
         } else if (type == typeid(std::string)) {
-            std::cout << "string: " << boost::any_cast<std::string>(message) << std::endl;
+            std::cout << "string: " << ccl::any_cast<std::string>(message) << std::endl;
         } else if (type == typeid(Point)) {
-            Point p = boost::any_cast<Point>(message);
+            Point p = ccl::any_cast<Point>(message);
             std::cout << "point: x=" << p.x << ", y=" << p.y << std::endl;
         } else {
             std::cout << "others" << std::endl;
@@ -42,5 +42,6 @@ int main(void) {
     system.Send("/path/actor2", (char*) "5");
     system.Broadcast(std::string("6"));
     system.Broadcast((Point) {7, 8});
+    system.Broadcast(9L);
     return 0;
 }
