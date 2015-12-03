@@ -76,6 +76,7 @@ class ActorSystem final {
 public:
     static ActorSystem& GetInstance();
     void Register(const std::string& address, const std::shared_ptr<Actor>& actor);
+    bool Unregister(const std::string& address);
     void Send(const std::string& address, const any& message);
     void Broadcast(const any& message);
 
@@ -97,6 +98,11 @@ inline ActorSystem& ActorSystem::GetInstance() {
 inline void ActorSystem::Register(const std::string& address, const std::shared_ptr<Actor>& actor) {
     std::lock_guard<std::mutex> lock(m_mutex);
     m_actors[address] = actor;
+}
+
+inline bool ActorSystem::Unregister(const std::string& address) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return m_actors.erase(address) == 1;
 }
 
 inline void ActorSystem::Send(const std::string& address, const any& message) {

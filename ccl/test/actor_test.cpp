@@ -48,9 +48,9 @@ TEST(ActorSystem, SendAndBroadcast) {
     // setup:
     std::string receivedMessage1;
     std::string receivedMessage2;
-    ActorSystem& system = ActorSystem::GetInstance();
 
     // when:
+    ActorSystem& system = ActorSystem::GetInstance();
     {
         auto actor1 = std::make_shared<Actor>([&](const any& message) {
             if (message.type() == typeid(std::string)) {
@@ -77,4 +77,30 @@ TEST(ActorSystem, SendAndBroadcast) {
     // then:
     EXPECT_EQ("foobar!", receivedMessage1);
     EXPECT_EQ("fizzbazz!", receivedMessage2);
+}
+
+TEST(ActorSystem, Unregister) {
+    // setup:
+    std::atomic<int> count(0);
+
+    // when:
+    ActorSystem& system = ActorSystem::GetInstance();
+    {
+        auto actor1 = std::make_shared<Actor>([&](const any& message) {
+            count++;
+        });
+        auto actor2 = std::make_shared<Actor>([&](const any& message) {
+            count++;
+        });
+        system.Register("/path/actor1", actor1);
+        system.Register("/path/actor2", actor2);
+    }
+    system.Send("/path/actor1", 0);
+    system.Send("/path/actor2", 0);
+    system.Unregister("/path/actor2");
+    system.Broadcast(0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+    // then:
+    EXPECT_EQ(3, count);
 }
