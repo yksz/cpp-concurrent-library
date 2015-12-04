@@ -32,9 +32,9 @@ int main(void) {
             std::cout << "others" << std::endl;
         }
     });
-    actor->Tell(1);
-    actor->Tell(2.0);
-    actor->Tell('3');
+    actor->Send(1);
+    actor->Send(2.0);
+    actor->Send('3');
 
     ccl::ActorSystem& system = ccl::ActorSystem::GetInstance();
     system.Register("/path/actor1", actor);

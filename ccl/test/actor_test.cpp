@@ -1,4 +1,5 @@
 #include "ccl/actor.h"
+#include <atomic>
 #include <chrono>
 #include <condition_variable>
 #include <memory>
@@ -9,7 +10,7 @@
 
 using namespace ccl;
 
-TEST(Actor, Tell) {
+TEST(Actor, Send) {
     // setup:
     const std::string sentMessage = "message";
     std::string receivedMessage;
@@ -30,7 +31,7 @@ TEST(Actor, Tell) {
         }
         condition.notify_one();
     });
-    actor.Tell(sentMessage);
+    actor.Send(sentMessage);
 
     // wait
     {

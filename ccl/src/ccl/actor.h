@@ -19,7 +19,7 @@ public:
     Actor(const Actor&) = delete;
     Actor& operator=(const Actor&) = delete;
 
-    void Tell(const any& message);
+    void Send(const any& message);
 
 private:
     std::function<void(const any&)> m_onReceive;
@@ -63,7 +63,7 @@ inline Actor::~Actor() {
     m_thread = nullptr;
 }
 
-inline void Actor::Tell(const any& message) {
+inline void Actor::Send(const any& message) {
     {
         std::unique_lock<std::mutex> lock(m_mutex);
         m_mailbox.push(message);
@@ -109,14 +109,14 @@ inline void ActorSystem::Send(const std::string& address, const any& message) {
     std::lock_guard<std::mutex> lock(m_mutex);
     if (m_actors.find(address) != m_actors.end()) {
         std::shared_ptr<Actor> actor = m_actors[address];
-        actor->Tell(message);
+        actor->Send(message);
     }
 }
 
 inline void ActorSystem::Broadcast(const any& message) {
     std::lock_guard<std::mutex> lock(m_mutex);
     for (auto& pair : m_actors) {
-        pair.second->Tell(message);
+        pair.second->Send(message);
     }
 }
 
