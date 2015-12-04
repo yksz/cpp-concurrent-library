@@ -25,7 +25,7 @@ public: // structors
     any(const any& other) : content(other.content ? other.content->clone() : 0) {}
 
     // Move constructor
-    any(any&& other) : content(other.content) {
+    any(any&& other) noexcept : content(other.content) {
         other.content = 0;
     }
 
