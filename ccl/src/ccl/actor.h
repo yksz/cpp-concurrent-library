@@ -49,13 +49,17 @@ inline Actor::Actor(std::function<void(const any&)>&& onReceive)
             m_onReceive(message);
         }
     };
-    m_thread = new std::thread(worker);
+    m_thread = new std::thread(std::move(worker));
 }
 
 inline Actor::~Actor() {
     {
         std::unique_lock<std::mutex> lock(m_mutex);
         m_stopped = true;
+        // clear
+        while (!m_mailbox.empty()) {
+            m_mailbox.pop();
+        }
     }
     m_condition.notify_one();
     m_thread->join();

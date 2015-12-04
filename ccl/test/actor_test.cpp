@@ -98,6 +98,7 @@ TEST(ActorSystem, Unregister) {
     }
     system.Send("/path/actor1", 0);
     system.Send("/path/actor2", 0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
     system.Unregister("/path/actor2");
     system.Broadcast(0);
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
