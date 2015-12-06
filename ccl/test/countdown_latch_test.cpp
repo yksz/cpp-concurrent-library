@@ -3,6 +3,7 @@
 #include <thread>
 #include <vector>
 #include <gtest/gtest.h>
+#include "util.h"
 
 using namespace ccl;
 
@@ -15,7 +16,7 @@ TEST(CountdownLatch, AwaitAndCountDown) {
     std::vector<std::thread> threads;
     for (int i = 0; i < count; i++) {
         std::thread th([&]() {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            util::doHeavyTask();
             latch.CountDown();
         });
         th.detach();
