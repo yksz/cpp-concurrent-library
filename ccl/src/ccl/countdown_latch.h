@@ -7,7 +7,7 @@ namespace ccl {
 
 class CountdownLatch final {
 public:
-    explicit CountdownLatch(unsigned int count) : m_count(count) {}
+    CountdownLatch(unsigned int count = 1) : m_count(count) {}
     ~CountdownLatch() = default;
     CountdownLatch(const CountdownLatch&) = delete;
     CountdownLatch& operator=(const CountdownLatch&) = delete;

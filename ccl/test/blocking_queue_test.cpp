@@ -3,6 +3,8 @@
 #include <iostream>
 #include <thread>
 #include <gtest/gtest.h>
+#include "util.h"
+#include "ccl/countdown_latch.h"
 
 namespace {
 
@@ -74,13 +76,59 @@ TEST(BlockingQueue, Pop_Blocking) {
     // when:
     BlockingQueue<std::string> queue;
     std::thread th([](BlockingQueue<std::string>& queue, const std::string& element) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        util::doHeavyTask();
         queue.Push(element);
     }, std::ref(queue), std::ref(pushedElement));
     std::string poppedElement = queue.Pop();
 
     // then:
     EXPECT_EQ(pushedElement, poppedElement);
+
+    // clenup:
+    th.join();
+}
+
+TEST(BlockingQueue, Push_Blocking) {
+    // setup:
+    const int capacity = 5;
+
+    // when:
+    BlockingQueue<int> queue(capacity);
+    std::thread th([&]() {
+        for (int i = 0; i < capacity + 1; i++) {
+            queue.Push(i);
+        }
+    });
+    util::await();
+
+    // then:
+    EXPECT_EQ(capacity, queue.Size());
+    queue.Pop();
+    queue.Pop();
+    util::await();
+    EXPECT_EQ(capacity - 1, queue.Size());
+
+    // clenup:
+    th.join();
+}
+
+TEST(BlockingQueue, Push_NonBlocking) {
+    // setup:
+    const int count = 100;
+    CountdownLatch latch;
+
+    // when:
+    BlockingQueue<int> queue;
+    std::thread th([&]() {
+        for (int i = 0; i < count; i++) {
+            queue.Push(i);
+        }
+        latch.CountDown();
+    });
+    latch.Await();
+
+    // then:
+    EXPECT_EQ(count, queue.Size());
 
     // clenup:
     th.join();
