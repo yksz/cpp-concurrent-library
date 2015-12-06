@@ -1,5 +1,6 @@
 #pragma once
 
+#include <atomic>
 #include <condition_variable>
 #include <functional>
 #include <map>
@@ -20,9 +21,13 @@ public:
     Actor& operator=(const Actor&) = delete;
 
     void Send(const any& message);
+    void SetShutdownNow(bool shutdownNow) {
+        m_shutdownNow = shutdownNow;
+    }
 
 private:
-    std::function<void(const any&)> m_onReceive;
+    const std::function<void(const any&)> m_onReceive;
+    std::atomic<bool> m_shutdownNow;
     bool m_stopped;
     std::thread* m_thread;
     std::queue<any> m_mailbox;
@@ -31,7 +36,7 @@ private:
 };
 
 inline Actor::Actor(std::function<void(const any&)>&& onReceive)
-        : m_onReceive(std::move(onReceive)), m_stopped(false) {
+        : m_onReceive(std::move(onReceive)), m_shutdownNow(false), m_stopped(false) {
     auto worker = [this]() {
         while (true) {
             any message;
@@ -56,9 +61,11 @@ inline Actor::~Actor() {
     {
         std::unique_lock<std::mutex> lock(m_mutex);
         m_stopped = true;
-        // clear
-        while (!m_mailbox.empty()) {
-            m_mailbox.pop();
+        if (m_shutdownNow) {
+            // clear
+            while (!m_mailbox.empty()) {
+                m_mailbox.pop();
+            }
         }
     }
     m_condition.notify_one();

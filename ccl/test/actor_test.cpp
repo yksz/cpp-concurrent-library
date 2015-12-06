@@ -6,6 +6,7 @@
 #include <mutex>
 #include <thread>
 #include <gtest/gtest.h>
+#include "util.h"
 #include "ccl/any.h"
 
 using namespace ccl;
@@ -14,35 +15,45 @@ TEST(Actor, Send) {
     // setup:
     const std::string sentMessage = "message";
     std::string receivedMessage;
-    bool received = false;
-    std::condition_variable condition;
-    std::mutex mutex;
 
     // when:
-    Actor actor([&](const any& message) {
-        if (message.type() == typeid(std::string)) {
-            receivedMessage = any_cast<std::string>(message);
-        }
-
-        // notify
-        {
-            std::unique_lock<std::mutex> lock(mutex);
-            received = true;
-        }
-        condition.notify_one();
-    });
-    actor.Send(sentMessage);
-
-    // wait
     {
-        std::unique_lock<std::mutex> lock(mutex);
-        while (!received) {
-            condition.wait(lock);
-        }
+        Actor actor([&](const any& message) {
+            if (message.type() == typeid(std::string)) {
+                receivedMessage = any_cast<std::string>(message);
+            }
+        });
+        actor.Send(sentMessage);
     }
 
     // then:
     EXPECT_EQ(sentMessage, receivedMessage);
+}
+
+TEST(Actor, ShutdownNow) {
+    // setup:
+    const int sendCount = 10000;
+    int sum = 0;
+
+    // when:
+    {
+        Actor actor([&](const any& message) {
+            if (message.type() == typeid(int)) {
+                sum += any_cast<int>(message);
+            }
+        });
+        for (int i = 0; i < sendCount; i++) {
+            actor.Send(i);
+        }
+        actor.SetShutdownNow(true);
+    }
+
+    // then:
+    int expected = 0;
+    for (int i = 0; i < sendCount; i++) {
+        expected += i;
+    }
+    EXPECT_NE(expected, sum);
 }
 
 TEST(ActorSystem, SendAndBroadcast) {
@@ -68,12 +79,10 @@ TEST(ActorSystem, SendAndBroadcast) {
     }
     system.Send("/path/actor1", std::string("foo"));
     system.Send("/path/actor2", std::string("fizz"));
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
     system.Send("/path/actor1", std::string("bar"));
     system.Send("/path/actor2", std::string("bazz"));
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
     system.Broadcast(std::string("!"));
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    util::await();
 
     // then:
     EXPECT_EQ("foobar!", receivedMessage1);
@@ -98,10 +107,10 @@ TEST(ActorSystem, Unregister) {
     }
     system.Send("/path/actor1", 0);
     system.Send("/path/actor2", 0);
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    util::await();
     system.Unregister("/path/actor2");
     system.Broadcast(0);
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    util::await();
 
     // then:
     EXPECT_EQ(3, count);
