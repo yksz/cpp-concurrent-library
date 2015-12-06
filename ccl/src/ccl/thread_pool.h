@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <atomic>
 #include <functional>
 #include <thread>
 #include <vector>
@@ -10,22 +11,25 @@ namespace ccl {
 
 class ThreadPool final {
 public:
-    explicit ThreadPool(size_t numThreads, bool shutdownNow = false);
+    explicit ThreadPool(size_t numThreads);
     ~ThreadPool();
     ThreadPool(const ThreadPool&) = delete;
     ThreadPool& operator=(const ThreadPool&) = delete;
 
     void Dispatch(std::function<void()>&& task);
+    void SetShutdownNow(bool shutdownNow) {
+        m_shutdownNow = shutdownNow;
+    }
 
 private:
+    std::atomic<bool> m_shutdownNow;
     const std::function<void()> m_poison;
     std::vector<std::thread> m_threads;
     BlockingQueue<std::function<void()>> m_queue;
-    bool m_shutdownNow;
 };
 
-inline ThreadPool::ThreadPool(size_t numThreads, bool shutdownNow)
-        : m_shutdownNow(shutdownNow) {
+inline ThreadPool::ThreadPool(size_t numThreads)
+        : m_shutdownNow(false) {
     for (size_t i = 0; i < numThreads; i++) {
         auto worker = [this]() {
             while (true) {

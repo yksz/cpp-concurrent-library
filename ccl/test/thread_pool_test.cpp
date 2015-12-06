@@ -3,6 +3,7 @@
 #include <chrono>
 #include <thread>
 #include <gtest/gtest.h>
+#include "util.h"
 
 using namespace ccl;
 
@@ -32,10 +33,11 @@ TEST(ThreadPool, ShutdownNow) {
 
     // when:
     {
-        ThreadPool pool(10, true);
+        ThreadPool pool(10);
+        pool.SetShutdownNow(true);
         for (int i = 0; i < dispatchCount; i++) {
             pool.Dispatch([&]() {
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                util::doHeavyTask();
                 count++;
             });
         }
