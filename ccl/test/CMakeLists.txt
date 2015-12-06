@@ -8,6 +8,7 @@ set(tests
     actor_test
     blocking_queue_test
     countdown_latch_test
+    scheduler_test
     thread_pool_test
 )
 

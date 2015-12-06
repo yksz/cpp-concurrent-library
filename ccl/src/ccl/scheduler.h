@@ -45,7 +45,8 @@ private:
     std::mutex m_mutex;
 };
 
-inline Scheduler::Scheduler() {
+inline Scheduler::Scheduler()
+        : m_stopped(false) {
     using namespace std::chrono;
 
     auto worker = [this]() {
