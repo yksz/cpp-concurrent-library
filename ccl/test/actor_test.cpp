@@ -2,6 +2,7 @@
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
+#include <future>
 #include <memory>
 #include <mutex>
 #include <thread>
@@ -18,7 +19,7 @@ TEST(Actor, Send) {
 
     // when:
     {
-        Actor actor([&](const any& message) {
+        Actor actor([&](any& message, std::promise<any>* promise) {
             if (message.type() == typeid(std::string)) {
                 receivedMessage = any_cast<std::string>(message);
             }
@@ -37,7 +38,7 @@ TEST(Actor, ShutdownNow) {
 
     // when:
     {
-        Actor actor([&](const any& message) {
+        Actor actor([&](any& message, std::promise<any>* promise) {
             if (message.type() == typeid(int)) {
                 sum += any_cast<int>(message);
             }
@@ -64,12 +65,12 @@ TEST(ActorSystem, SendAndBroadcast) {
     // when:
     ActorSystem& system = ActorSystem::GetInstance();
     {
-        auto actor1 = std::make_shared<Actor>([&](const any& message) {
+        auto actor1 = std::make_shared<Actor>([&](any& message, std::promise<any>* promise) {
             if (message.type() == typeid(std::string)) {
                 receivedMessage1 += any_cast<std::string>(message);
             }
         });
-        auto actor2 = std::make_shared<Actor>([&](const any& message) {
+        auto actor2 = std::make_shared<Actor>([&](any& message, std::promise<any>* promise) {
             if (message.type() == typeid(std::string)) {
                 receivedMessage2 += any_cast<std::string>(message);
             }
@@ -96,10 +97,10 @@ TEST(ActorSystem, Unregister) {
     // when:
     ActorSystem& system = ActorSystem::GetInstance();
     {
-        auto actor1 = std::make_shared<Actor>([&](const any& message) {
+        auto actor1 = std::make_shared<Actor>([&](any& message, std::promise<any>* promise) {
             count++;
         });
-        auto actor2 = std::make_shared<Actor>([&](const any& message) {
+        auto actor2 = std::make_shared<Actor>([&](any& message, std::promise<any>* promise) {
             count++;
         });
         system.Register("/path/actor1", actor1);

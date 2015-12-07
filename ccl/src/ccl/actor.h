@@ -3,6 +3,7 @@
 #include <atomic>
 #include <condition_variable>
 #include <functional>
+#include <future>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -13,33 +14,38 @@
 
 namespace ccl {
 
+struct Mail {
+    any message;
+    std::promise<any>* promise;
+};
+
 class Actor final {
 public:
-    explicit Actor(std::function<void(const any&)>&& onReceive);
+    explicit Actor(std::function<void(any&, std::promise<any>*)>&& onReceive);
     ~Actor();
     Actor(const Actor&) = delete;
     Actor& operator=(const Actor&) = delete;
 
-    void Send(const any& message);
+    void Send(const any& message, std::promise<any>* promise = nullptr);
     void SetShutdownNow(bool shutdownNow) {
         m_shutdownNow = shutdownNow;
     }
 
 private:
-    const std::function<void(const any&)> m_onReceive;
+    const std::function<void(any&, std::promise<any>*)> m_onReceive;
     std::atomic<bool> m_shutdownNow;
     bool m_stopped;
     std::thread* m_thread;
-    std::queue<any> m_mailbox;
+    std::queue<Mail> m_mailbox;
     std::condition_variable m_condition;
     std::mutex m_mutex;
 };
 
-inline Actor::Actor(std::function<void(const any&)>&& onReceive)
+inline Actor::Actor(std::function<void(any&, std::promise<any>*)>&& onReceive)
         : m_onReceive(std::move(onReceive)), m_shutdownNow(false), m_stopped(false) {
     auto worker = [this]() {
         while (true) {
-            any message;
+            Mail mail;
             {
                 std::unique_lock<std::mutex> lock(m_mutex);
                 while (!m_stopped && m_mailbox.empty()) {
@@ -48,10 +54,10 @@ inline Actor::Actor(std::function<void(const any&)>&& onReceive)
                 if (m_stopped && m_mailbox.empty()) {
                     return;
                 }
-                message = std::move(m_mailbox.front());
+                mail = std::move(m_mailbox.front());
                 m_mailbox.pop();
             }
-            m_onReceive(message);
+            m_onReceive(mail.message, mail.promise);
         }
     };
     m_thread = new std::thread(std::move(worker));
@@ -74,10 +80,10 @@ inline Actor::~Actor() {
     m_thread = nullptr;
 }
 
-inline void Actor::Send(const any& message) {
+inline void Actor::Send(const any& message, std::promise<any>* promise) {
     {
         std::unique_lock<std::mutex> lock(m_mutex);
-        m_mailbox.push(message);
+        m_mailbox.push((Mail) {message, promise});
     }
     m_condition.notify_one();
 }
@@ -88,7 +94,7 @@ public:
     static ActorSystem& GetInstance();
     void Register(const std::string& address, const std::shared_ptr<Actor>& actor);
     bool Unregister(const std::string& address);
-    void Send(const std::string& address, const any& message);
+    void Send(const std::string& address, const any& message, std::promise<any>* promise = nullptr);
     void Broadcast(const any& message);
 
 private:
@@ -116,11 +122,11 @@ inline bool ActorSystem::Unregister(const std::string& address) {
     return m_actors.erase(address) == 1;
 }
 
-inline void ActorSystem::Send(const std::string& address, const any& message) {
+inline void ActorSystem::Send(const std::string& address, const any& message, std::promise<any>* promise) {
     std::lock_guard<std::mutex> lock(m_mutex);
     if (m_actors.find(address) != m_actors.end()) {
         std::shared_ptr<Actor> actor = m_actors[address];
-        actor->Send(message);
+        actor->Send(message, promise);
     }
 }
 
