@@ -9,11 +9,11 @@
 #include <thread>
 #include <vector>
 
-namespace {
+namespace ccl {
 
 struct ScheduledTask {
     std::function<void()> task;
-    long executionTime; // absolute time
+    long executionTime; // unix time [ms]
     long period; // [ms]
 };
 
@@ -23,10 +23,6 @@ struct ScheduledTaskComparator {
     }
 };
 
-} // unnamed namespace
-
-namespace ccl {
-
 class Scheduler final {
 public:
     Scheduler();
@@ -34,8 +30,17 @@ public:
     Scheduler(const Scheduler&) = delete;
     Scheduler& operator=(const Scheduler&) = delete;
 
-    void Schedule(time_t startTime, std::function<void()>&& task);
-    void Schedule(time_t firstTime, long period, std::function<void()>&& task);
+    template<typename T> static long ToUnixTime(const std::chrono::time_point<T>& tp) {
+        return std::chrono::duration_cast<std::chrono::milliseconds>(tp.time_since_epoch()).count();
+    }
+    template<typename T> static std::chrono::time_point<T> ToTimePoint(long& unixTime) {
+        return std::chrono::time_point<T>(std::chrono::duration<long, std::milli>(unixTime));
+    }
+
+    void Schedule(long startTime, std::function<void()>&& task);
+    void Schedule(long firstTime, long period, std::function<void()>&& task);
+
+public:
 
 private:
     bool m_stopped;
@@ -61,17 +66,16 @@ inline Scheduler::Scheduler()
                     return;
                 }
                 schedTask = m_queue.top();
-                time_t now = time(nullptr);
+                auto now = Scheduler::ToUnixTime(system_clock::now());
                 if (schedTask.executionTime <= now) { // fired
                     m_queue.pop();
                     if (schedTask.period > 0) { // repeat
-                        auto tp = system_clock::from_time_t(schedTask.executionTime) + milliseconds(schedTask.period);
-                        schedTask.executionTime = system_clock::to_time_t(tp);
+                        schedTask.executionTime += schedTask.period;
                         m_queue.push(schedTask); // reschedule
                     }
                 } else {
-                    auto tp = system_clock::from_time_t(schedTask.executionTime);
-                    m_condition.wait_until(lock, tp);
+                    auto execTime = Scheduler::ToTimePoint<system_clock>(schedTask.executionTime);
+                    m_condition.wait_until(lock, execTime);
                     continue;
                 }
             }
@@ -96,7 +100,7 @@ inline Scheduler::~Scheduler() {
     m_thread = nullptr;
 }
 
-inline void Scheduler::Schedule(time_t startTime, std::function<void()>&& task) {
+inline void Scheduler::Schedule(long startTime, std::function<void()>&& task) {
     {
         std::unique_lock<std::mutex> lock(m_mutex);
         m_queue.emplace((ScheduledTask) {task, startTime, 0});
@@ -104,7 +108,7 @@ inline void Scheduler::Schedule(time_t startTime, std::function<void()>&& task) 
     m_condition.notify_one();
 }
 
-inline void Scheduler::Schedule(time_t firstTime, long period, std::function<void()>&& task) {
+inline void Scheduler::Schedule(long firstTime, long period, std::function<void()>&& task) {
     {
         std::unique_lock<std::mutex> lock(m_mutex);
         m_queue.emplace((ScheduledTask) {task, firstTime, period});
