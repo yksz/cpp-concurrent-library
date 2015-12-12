@@ -16,7 +16,7 @@ namespace ccl {
 
 struct Mail {
     any message;
-    std::promise<any>* promise;
+    std::unique_ptr<std::promise<any>> promise;
 };
 
 class Actor final {
@@ -26,7 +26,7 @@ public:
     Actor(const Actor&) = delete;
     Actor& operator=(const Actor&) = delete;
 
-    void Send(const any& message, std::promise<any>* promise = nullptr);
+    std::future<any> Send(const any& message);
     void SetShutdownNow(bool shutdownNow) {
         m_shutdownNow = shutdownNow;
     }
@@ -57,7 +57,7 @@ inline Actor::Actor(std::function<void(any&, std::promise<any>*)>&& onReceive)
                 mail = std::move(m_mailbox.front());
                 m_mailbox.pop();
             }
-            m_onReceive(mail.message, mail.promise);
+            m_onReceive(mail.message, mail.promise.get());
         }
     };
     m_thread = new std::thread(std::move(worker));
@@ -80,12 +80,16 @@ inline Actor::~Actor() {
     m_thread = nullptr;
 }
 
-inline void Actor::Send(const any& message, std::promise<any>* promise) {
+inline std::future<any> Actor::Send(const any& message) {
+    std::future<any> future;
     {
         std::unique_lock<std::mutex> lock(m_mutex);
-        m_mailbox.push((Mail) {message, promise});
+        std::unique_ptr<std::promise<any>> promise(new std::promise<any>());
+        future = promise->get_future();
+        m_mailbox.push((Mail) {message, std::move(promise)});
     }
     m_condition.notify_one();
+    return std::move(future);
 }
 
 
@@ -94,7 +98,7 @@ public:
     static ActorSystem& GetInstance();
     void Register(const std::string& address, const std::shared_ptr<Actor>& actor);
     bool Unregister(const std::string& address);
-    void Send(const std::string& address, const any& message, std::promise<any>* promise = nullptr);
+    std::future<any> Send(const std::string& address, const any& message);
     void Broadcast(const any& message);
 
 private:
@@ -122,12 +126,13 @@ inline bool ActorSystem::Unregister(const std::string& address) {
     return m_actors.erase(address) == 1;
 }
 
-inline void ActorSystem::Send(const std::string& address, const any& message, std::promise<any>* promise) {
+inline std::future<any> ActorSystem::Send(const std::string& address, const any& message) {
     std::lock_guard<std::mutex> lock(m_mutex);
     if (m_actors.find(address) != m_actors.end()) {
         std::shared_ptr<Actor> actor = m_actors[address];
-        actor->Send(message, promise);
+        return actor->Send(message);
     }
+    return std::future<any>();
 }
 
 inline void ActorSystem::Broadcast(const any& message) {

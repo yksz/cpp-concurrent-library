@@ -24,9 +24,7 @@ int main(void) {
             std::cout << "char: " << ccl::any_cast<char>(message) << std::endl;
         } else if (type == typeid(char*)) {
             std::cout << "char*: " << ccl::any_cast<char*>(message) << std::endl;
-            if (promise != nullptr) {
-                promise->set_value((char*) "char*: ok");
-            }
+            promise->set_value((char*) "char*: ok");
         } else if (type == typeid(std::string)) {
             std::cout << "string: " << ccl::any_cast<std::string>(message) << std::endl;
         } else if (type == typeid(Point)) {
@@ -40,19 +38,25 @@ int main(void) {
     actor->Send(2.0);
     actor->Send('3');
 
-    std::promise<ccl::any> promise;
+    std::future<ccl::any> future1;
+    std::future<ccl::any> future2;
     {
         ccl::ActorSystem& system = ccl::ActorSystem::GetInstance();
         system.Register("/path/actor1", actor);
-        system.Send("/path/actor1", (char*) "4", &promise);
-        system.Send("/path/actor2", (char*) "5");
+        future1 = system.Send("/path/actor1", (char*) "4");
+        future2 = system.Send("/path/actor2", (char*) "5");
         system.Broadcast(std::string("6"));
         system.Broadcast((Point) {7, 8});
         system.Broadcast(9L);
     }
-    ccl::any response = promise.get_future().get();
-    if (response.type() == typeid(char*)) {
-        std::cout << "response: " << ccl::any_cast<char*>(response) << std::endl;
+    if (future1.valid()) {
+        ccl::any response1 = future1.get();
+        if (response1.type() == typeid(char*)) {
+            std::cout << "response1: " << ccl::any_cast<char*>(response1) << std::endl;
+        }
+    }
+    if (future2.valid()) {
+        std::cout << "response2" << std::endl;
     }
     return 0;
 }
