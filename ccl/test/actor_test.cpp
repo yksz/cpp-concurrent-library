@@ -19,10 +19,11 @@ TEST(Actor, Send) {
 
     // when:
     {
-        Actor actor([&](any& message, std::promise<any>* promise) {
+        Actor actor([&](const any& message) {
             if (message.type() == typeid(std::string)) {
                 receivedMessage = any_cast<std::string>(message);
             }
+            return 0;
         });
         actor.Send(sentMessage);
     }
@@ -38,10 +39,11 @@ TEST(Actor, ShutdownNow) {
 
     // when:
     {
-        Actor actor([&](any& message, std::promise<any>* promise) {
+        Actor actor([&](const any& message) {
             if (message.type() == typeid(int)) {
                 sum += any_cast<int>(message);
             }
+            return 0;
         });
         for (int i = 0; i < sendCount; i++) {
             actor.Send(i);
@@ -65,15 +67,17 @@ TEST(ActorSystem, SendAndBroadcast) {
     // when:
     ActorSystem& system = ActorSystem::GetInstance();
     {
-        auto actor1 = std::make_shared<Actor>([&](any& message, std::promise<any>* promise) {
+        auto actor1 = std::make_shared<Actor>([&](const any& message) {
             if (message.type() == typeid(std::string)) {
                 receivedMessage1 += any_cast<std::string>(message);
             }
+            return 0;
         });
-        auto actor2 = std::make_shared<Actor>([&](any& message, std::promise<any>* promise) {
+        auto actor2 = std::make_shared<Actor>([&](const any& message) {
             if (message.type() == typeid(std::string)) {
                 receivedMessage2 += any_cast<std::string>(message);
             }
+            return 0;
         });
         system.Register("/path/actor1", actor1);
         system.Register("/path/actor2", actor2);
@@ -97,11 +101,13 @@ TEST(ActorSystem, Unregister) {
     // when:
     ActorSystem& system = ActorSystem::GetInstance();
     {
-        auto actor1 = std::make_shared<Actor>([&](any& message, std::promise<any>* promise) {
+        auto actor1 = std::make_shared<Actor>([&](const any& message) {
             count++;
+            return 0;
         });
-        auto actor2 = std::make_shared<Actor>([&](any& message, std::promise<any>* promise) {
+        auto actor2 = std::make_shared<Actor>([&](const any& message) {
             count++;
+            return 0;
         });
         system.Register("/path/actor1", actor1);
         system.Register("/path/actor2", actor2);
