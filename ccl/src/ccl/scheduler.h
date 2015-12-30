@@ -40,8 +40,6 @@ public:
     void Schedule(long startTime, std::function<void()>&& task);
     void Schedule(long firstTime, long period, std::function<void()>&& task);
 
-public:
-
 private:
     bool m_stopped;
     std::thread* m_thread;
