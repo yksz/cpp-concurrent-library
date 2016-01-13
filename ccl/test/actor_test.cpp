@@ -46,17 +46,13 @@ TEST(Actor, ShutdownNow) {
             return 0;
         });
         for (int i = 0; i < sendCount; i++) {
-            actor.Send(i);
+            actor.Send(1);
         }
         actor.SetShutdownNow(true);
     }
 
     // then:
-    int expected = 0;
-    for (int i = 0; i < sendCount; i++) {
-        expected += i;
-    }
-    EXPECT_NE(expected, sum);
+    EXPECT_NE(sendCount, sum);
 }
 
 TEST(ActorSystem, SendAndBroadcast) {
