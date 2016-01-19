@@ -7,11 +7,12 @@ if [ ! -e ${DIRNAME} ] ; then
     mkdir ${DIRNAME}
 fi
 cd ${DIRNAME}
+
 cmake -G "Eclipse CDT4 - Unix Makefiles" \
     -DCMAKE_ECLIPSE_GENERATE_SOURCE_PROJECT=TRUE \
     -DCMAKE_ECLIPSE_VERSION=4.4 \
     -DCMAKE_BUILD_TYPE=Debug \
-    -Dbuild_tests=ON \
+    -DCMAKE_CXX_COMPILER_ARG1=-std=c++11 \
     -Dbuild_examples=ON \
     ../ccl
 
