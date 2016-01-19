@@ -30,10 +30,12 @@ public:
     Scheduler(const Scheduler&) = delete;
     Scheduler& operator=(const Scheduler&) = delete;
 
-    template<typename T> static long ToUnixTime(const std::chrono::time_point<T>& tp) {
+    template<typename T>
+    static long ToUnixTime(const std::chrono::time_point<T>& tp) {
         return std::chrono::duration_cast<std::chrono::milliseconds>(tp.time_since_epoch()).count();
     }
-    template<typename T> static std::chrono::time_point<T> ToTimePoint(long unixTime) {
+    template<typename T>
+    static std::chrono::time_point<T> ToTimePoint(long unixTime) {
         return std::chrono::time_point<T>(std::chrono::duration<long, std::milli>(unixTime));
     }
 
