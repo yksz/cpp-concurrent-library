@@ -4,10 +4,12 @@ if(UNIX) # include Linux
 endif()
 
 include_directories(
+    /usr/include # for boost
     ${PROJECT_SOURCE_DIR}/src
 )
 
 set(examples
+    actor_boost_example
     actor_example
 )
 
