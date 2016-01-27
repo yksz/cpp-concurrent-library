@@ -8,7 +8,6 @@
 #include <thread>
 #include <gtest/gtest.h>
 #include "util.h"
-#include "ccl/any.h"
 
 using namespace ccl;
 
@@ -61,7 +60,7 @@ TEST(ActorSystem, SendAndBroadcast) {
     std::string receivedMessage2;
 
     // when:
-    ActorSystem& system = ActorSystem::GetInstance();
+    ActorSystem system;
     {
         auto actor1 = std::make_shared<Actor>([&](const any& message) {
             if (message.type() == typeid(std::string)) {
@@ -95,7 +94,7 @@ TEST(ActorSystem, Unregister) {
     std::atomic<int> count(0);
 
     // when:
-    ActorSystem& system = ActorSystem::GetInstance();
+    ActorSystem system;
     {
         auto actor1 = std::make_shared<Actor>([&](const any& message) {
             count++;

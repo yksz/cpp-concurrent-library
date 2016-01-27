@@ -2,7 +2,6 @@
 #include <iostream>
 #include <typeinfo>
 #include "ccl/actor.h"
-#include "ccl/any.h"
 
 namespace {
 
@@ -42,7 +41,7 @@ int main(void) {
     std::future<ccl::any> future1;
     std::future<ccl::any> future2;
     {
-        ccl::ActorSystem& system = ccl::ActorSystem::GetInstance();
+        ccl::ActorSystem system;
         system.Register("/path/actor1", actor);
         future1 = system.Send("/path/actor1", (char*) "4");
         future2 = system.Send("/path/actor2", (char*) "5");

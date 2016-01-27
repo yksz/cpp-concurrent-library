@@ -43,7 +43,11 @@ inline std::future<boost::any> Actor::Send(const boost::any& message) {
 
 class ActorSystem final {
 public:
-    static ActorSystem& GetInstance();
+    ActorSystem() = default;
+    ~ActorSystem() = default;
+    ActorSystem(const ActorSystem&) = delete;
+    void operator=(const ActorSystem&) = delete;
+
     void Register(const std::string& address, const std::shared_ptr<Actor>& actor);
     bool Unregister(const std::string& address);
     std::future<boost::any> Send(const std::string& address, const boost::any& message);
@@ -52,17 +56,7 @@ public:
 private:
     std::map<std::string, std::shared_ptr<Actor>> m_actors;
     std::mutex m_mutex;
-
-    ActorSystem() = default;
-    ~ActorSystem() = default;
-    ActorSystem(const ActorSystem&) = delete;
-    void operator=(const ActorSystem&) = delete;
 };
-
-inline ActorSystem& ActorSystem::GetInstance() {
-    static ActorSystem instance;
-    return instance;
-}
 
 inline void ActorSystem::Register(const std::string& address, const std::shared_ptr<Actor>& actor) {
     std::lock_guard<std::mutex> lock(m_mutex);
