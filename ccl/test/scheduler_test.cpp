@@ -20,14 +20,14 @@ TEST(Scheduler, Schedule) {
         auto newNow = system_clock::now();
         auto diff = duration_cast<milliseconds>(newNow - now);
         // then:
-        EXPECT_NEAR(100, diff.count(), 5);
+        EXPECT_NEAR(100, diff.count(), 10);
         latch.CountDown();
     });
     scheduler.Schedule(Scheduler::ToUnixTime(after2), [&]() {
         auto newNow = system_clock::now();
         auto diff = duration_cast<milliseconds>(newNow - now);
         // then:
-        EXPECT_NEAR(200, diff.count(), 5);
+        EXPECT_NEAR(200, diff.count(), 10);
         latch.CountDown();
     });
     latch.Await();
@@ -46,7 +46,7 @@ TEST(ThreadPool, Schedule_period) {
         auto newNow = system_clock::now();
         auto diff = duration_cast<milliseconds>(newNow - now);
         // then:
-        EXPECT_NEAR((count++) * 100, diff.count(), 5);
+        EXPECT_NEAR((count++) * 100, diff.count(), 10);
         latch.CountDown();
     });
     latch.Await();

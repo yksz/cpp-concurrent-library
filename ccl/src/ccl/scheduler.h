@@ -4,6 +4,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <functional>
+#include <memory>
 #include <mutex>
 #include <queue>
 #include <thread>
@@ -44,7 +45,7 @@ public:
 
 private:
     bool m_stopped;
-    std::thread* m_thread;
+    std::unique_ptr<std::thread> m_thread;
     std::priority_queue<ScheduledTask, std::vector<ScheduledTask>, ScheduledTaskComparator> m_queue;
     std::condition_variable m_condition;
     std::mutex m_mutex;
@@ -82,7 +83,7 @@ inline Scheduler::Scheduler()
             schedTask.task();
         }
     };
-    m_thread = new std::thread(std::move(worker));
+    m_thread = std::unique_ptr<std::thread>(new std::thread(std::move(worker)));
 }
 
 inline Scheduler::~Scheduler() {
@@ -96,8 +97,6 @@ inline Scheduler::~Scheduler() {
     }
     m_condition.notify_one();
     m_thread->join();
-    delete m_thread;
-    m_thread = nullptr;
 }
 
 inline void Scheduler::Schedule(long startTime, std::function<void()>&& task) {
