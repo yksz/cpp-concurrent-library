@@ -87,7 +87,7 @@ inline Scheduler::Scheduler()
 
 inline Scheduler::~Scheduler() {
     {
-        std::unique_lock<std::mutex> lock(m_mutex);
+        std::lock_guard<std::mutex> lock(m_mutex);
         m_stopped = true;
         // clear
         while (!m_queue.empty()) {
@@ -102,7 +102,7 @@ inline Scheduler::~Scheduler() {
 
 inline void Scheduler::Schedule(long startTime, std::function<void()>&& task) {
     {
-        std::unique_lock<std::mutex> lock(m_mutex);
+        std::lock_guard<std::mutex> lock(m_mutex);
         m_queue.emplace((ScheduledTask) {task, startTime, 0});
     }
     m_condition.notify_one();
@@ -110,7 +110,7 @@ inline void Scheduler::Schedule(long startTime, std::function<void()>&& task) {
 
 inline void Scheduler::Schedule(long firstTime, long period, std::function<void()>&& task) {
     {
-        std::unique_lock<std::mutex> lock(m_mutex);
+        std::lock_guard<std::mutex> lock(m_mutex);
         m_queue.emplace((ScheduledTask) {task, firstTime, period});
     }
     m_condition.notify_one();

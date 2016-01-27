@@ -42,7 +42,7 @@ inline void CountdownLatch::Await() {
 }
 
 inline void CountdownLatch::CountDown() {
-    std::unique_lock<std::mutex> lock(m_mutex);
+    std::lock_guard<std::mutex> lock(m_mutex);
     if (m_count <= 0) {
         return;
     }
@@ -53,7 +53,7 @@ inline void CountdownLatch::CountDown() {
 }
 
 inline unsigned int CountdownLatch::GetCount() {
-    std::unique_lock<std::mutex> lock(m_mutex);
+    std::lock_guard<std::mutex> lock(m_mutex);
     return m_count;
 }
 

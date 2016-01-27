@@ -32,13 +32,13 @@ private:
 
 template<typename T>
 bool BlockingQueue<T>::Empty() {
-    std::unique_lock<std::mutex> lock(m_mutex);
+    std::lock_guard<std::mutex> lock(m_mutex);
     return m_queue.empty();
 }
 
 template<typename T>
 size_t BlockingQueue<T>::Size() {
-    std::unique_lock<std::mutex> lock(m_mutex);
+    std::lock_guard<std::mutex> lock(m_mutex);
     return m_queue.size();
 }
 
@@ -56,8 +56,8 @@ void BlockingQueue<T>::Push(const T& element) {
 
 template<typename T>
 void BlockingQueue<T>::Emplace(T&& element) {
-    std::unique_lock<std::mutex> lock(m_mutex);
     {
+        std::unique_lock<std::mutex> lock(m_mutex);
         while (m_queue.size() > m_capacity - 1) {
             m_condition.wait(lock);
         }
@@ -96,7 +96,7 @@ void BlockingQueue<T>::Pop(T& element) {
 
 template<typename T>
 void BlockingQueue<T>::Clear() {
-    std::unique_lock<std::mutex> lock(m_mutex);
+    std::lock_guard<std::mutex> lock(m_mutex);
     while (!m_queue.empty()) {
         m_queue.pop();
     }
