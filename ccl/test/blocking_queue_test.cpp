@@ -10,8 +10,8 @@ namespace {
 
 class Object {
 public:
-    static int m_copyConstructorCount;
-    static int m_copyAssignmentCount;
+    static int s_copyConstructorCount;
+    static int s_copyAssignmentCount;
 
     Object() {
         std::cout << "Object: constructor\n";
@@ -23,12 +23,12 @@ public:
 
     Object(const Object&) {
         std::cout << "Object: copy constructor\n";
-        Object::m_copyConstructorCount++;
+        Object::s_copyConstructorCount++;
     }
 
     Object& operator=(const Object&) {
         std::cout << "Object: copy assignment\n";
-        Object::m_copyAssignmentCount++;
+        Object::s_copyAssignmentCount++;
         return *this;
     }
 
@@ -42,8 +42,8 @@ public:
     }
 };
 
-int Object::m_copyConstructorCount = 0;
-int Object::m_copyAssignmentCount = 0;
+int Object::s_copyConstructorCount = 0;
+int Object::s_copyAssignmentCount = 0;
 
 } // unnamed namespace
 
@@ -61,12 +61,12 @@ TEST(BlockingQueue, MoveSemantics) {
     std::cout << "Pop end\n";
 
     // then:
-    EXPECT_EQ(0, Object::m_copyConstructorCount);
-    EXPECT_EQ(0, Object::m_copyAssignmentCount);
+    EXPECT_EQ(0, Object::s_copyConstructorCount);
+    EXPECT_EQ(0, Object::s_copyAssignmentCount);
 
     // cleanup:
-    Object::m_copyConstructorCount = 0;
-    Object::m_copyAssignmentCount = 0;
+    Object::s_copyConstructorCount = 0;
+    Object::s_copyAssignmentCount = 0;
 }
 
 TEST(BlockingQueue, Pop_Blocking) {
@@ -91,15 +91,18 @@ TEST(BlockingQueue, Pop_Blocking) {
 TEST(BlockingQueue, Push_Blocking) {
     // setup:
     const int capacity = 5;
+    CountdownLatch latch(capacity);
 
     // when:
     BlockingQueue<int> queue(capacity);
-    std::thread th([&]() {
-        for (int i = 0; i < capacity + 1; i++) {
+    for (int i = 0; i < capacity + 1; i++) {
+        std::thread th([&]() {
             queue.Push(i);
-        }
-    });
-    util::await();
+            latch.CountDown();
+        });
+        th.detach();
+    }
+    latch.Await();
 
     // then:
     EXPECT_EQ(capacity, queue.Size());
@@ -107,31 +110,26 @@ TEST(BlockingQueue, Push_Blocking) {
     queue.Pop();
     util::await();
     EXPECT_EQ(capacity - 1, queue.Size());
-
-    // clenup:
-    th.join();
 }
 
 TEST(BlockingQueue, Push_NonBlocking) {
     // setup:
     const int count = 100;
-    CountdownLatch latch;
+    CountdownLatch latch(count);
 
     // when:
     BlockingQueue<int> queue;
-    std::thread th([&]() {
-        for (int i = 0; i < count; i++) {
+    for (int i = 0; i < count; i++) {
+        std::thread th([&]() {
             queue.Push(i);
-        }
-        latch.CountDown();
-    });
+            latch.CountDown();
+        });
+        th.detach();
+    }
     latch.Await();
 
     // then:
     EXPECT_EQ(count, queue.Size());
-
-    // clenup:
-    th.join();
 }
 
 TEST(BlockingQueue, Push_FunctionObject) {
