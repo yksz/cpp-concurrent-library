@@ -1,6 +1,6 @@
 @echo off
 
-set DIRNAME="eclipse"
+set DIRNAME="eclipse-mingw"
 
 cd /d %~dp0
 if not exist %DIRNAME% (
