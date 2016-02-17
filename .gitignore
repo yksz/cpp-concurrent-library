@@ -30,4 +30,5 @@
 # Project
 build/
 eclipse/
+eclipse-mingw/
 .project
