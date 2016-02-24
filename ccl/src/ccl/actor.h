@@ -46,7 +46,7 @@ public:
     ActorSystem() = default;
     ~ActorSystem() = default;
     ActorSystem(const ActorSystem&) = delete;
-    void operator=(const ActorSystem&) = delete;
+    ActorSystem& operator=(const ActorSystem&) = delete;
 
     void Register(const std::string& address, const std::shared_ptr<Actor>& actor);
     bool Unregister(const std::string& address);
