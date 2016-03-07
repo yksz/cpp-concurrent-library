@@ -76,9 +76,9 @@ public:
             ) {
         std::lock_guard<std::mutex> lock(m_mutex);
         if (m_actors.find(address) != m_actors.end()) {
-            std::shared_ptr<Actor> actor = m_actors[address];
             CCL_ACTOR_DEBUG_PRINTF("[ccl/actor] Send from `%s` to `%s`: message=`%s`\n",
                     from, address.c_str(), message.type().name());
+            std::shared_ptr<Actor> actor = m_actors[address];
             return actor->Send(message);
         }
         return std::future<boost::any>();
@@ -90,9 +90,9 @@ public:
 #endif // CCL_ACTOR_DEBUG
             ) {
         std::lock_guard<std::mutex> lock(m_mutex);
+        CCL_ACTOR_DEBUG_PRINTF("[ccl/actor] Broadcast from `%s`: message=`%s`\n",
+                from, message.type().name());
         for (auto& pair : m_actors) {
-            CCL_ACTOR_DEBUG_PRINTF("[ccl/actor] Broadcast from `%s` to `%s`: message=`%s`\n",
-                    from, pair.first.c_str(), message.type().name());
             pair.second->Send(message);
         }
     }
