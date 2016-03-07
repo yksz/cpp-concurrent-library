@@ -1,6 +1,7 @@
 #include <future>
 #include <iostream>
 #include <typeinfo>
+#define CCL_ACTOR_DEBUG
 #include "ccl/actor.h"
 
 namespace {

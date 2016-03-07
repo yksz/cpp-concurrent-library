@@ -10,6 +10,12 @@
 #include "ccl/any.h"
 #include "ccl/thread_pool.h"
 
+#ifdef CCL_ACTOR_DEBUG
+#define CCL_ACTOR_DEBUG_PRINTF(fmt, ...) do { printf(fmt, ## __VA_ARGS__); } while (0)
+#else
+#define CCL_ACTOR_DEBUG_PRINTF(fmt, ...)
+#endif // CCL_ACTOR_DEBUG
+
 namespace ccl {
 
 class Actor final {
@@ -63,18 +69,30 @@ public:
         return m_actors.erase(address) == 1;
     }
 
-    std::future<any> Send(const any& message, const std::string& address) {
+    std::future<any> Send(const any& message, const std::string& address
+#ifdef CCL_ACTOR_DEBUG
+            , const char* from = __FILE__
+#endif // CCL_ACTOR_DEBUG
+            ) {
         std::lock_guard<std::mutex> lock(m_mutex);
         if (m_actors.find(address) != m_actors.end()) {
             std::shared_ptr<Actor> actor = m_actors[address];
+            CCL_ACTOR_DEBUG_PRINTF("[ccl/actor] Send from `%s` to `%s`: message=`%s`\n",
+                    from, address.c_str(), message.type().name());
             return actor->Send(message);
         }
         return std::future<any>();
     }
 
-    void Broadcast(const any& message) {
+    void Broadcast(const any& message
+#ifdef CCL_ACTOR_DEBUG
+            , const char* from = __FILE__
+#endif // CCL_ACTOR_DEBUG
+            ) {
         std::lock_guard<std::mutex> lock(m_mutex);
         for (auto& pair : m_actors) {
+            CCL_ACTOR_DEBUG_PRINTF("[ccl/actor] Broadcast from `%s` to `%s`: message=`%s`\n",
+                    from, pair.first.c_str(), message.type().name());
             pair.second->Send(message);
         }
     }
