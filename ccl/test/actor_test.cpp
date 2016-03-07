@@ -74,13 +74,13 @@ TEST(ActorSystem, SendAndBroadcast) {
             }
             return 0;
         });
-        system.Register("/path/actor1", actor1);
-        system.Register("/path/actor2", actor2);
+        system.Register(actor1, "/path/actor1");
+        system.Register(actor2, "/path/actor2");
     }
-    system.Send("/path/actor1", std::string("foo"));
-    system.Send("/path/actor2", std::string("fizz"));
-    system.Send("/path/actor1", std::string("bar"));
-    system.Send("/path/actor2", std::string("bazz"));
+    system.Send(std::string("foo"), "/path/actor1");
+    system.Send(std::string("fizz"), "/path/actor2");
+    system.Send(std::string("bar"), "/path/actor1");
+    system.Send(std::string("bazz"), "/path/actor2");
     system.Broadcast(std::string("!"));
     util::await();
 
@@ -104,11 +104,11 @@ TEST(ActorSystem, Unregister) {
             count++;
             return 0;
         });
-        system.Register("/path/actor1", actor1);
-        system.Register("/path/actor2", actor2);
+        system.Register(actor1, "/path/actor1");
+        system.Register(actor2, "/path/actor2");
     }
-    system.Send("/path/actor1", 0);
-    system.Send("/path/actor2", 0);
+    system.Send(0, "/path/actor1");
+    system.Send(0, "/path/actor2");
     util::await();
     system.Unregister("/path/actor2");
     system.Broadcast(0);

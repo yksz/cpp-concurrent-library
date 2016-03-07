@@ -53,7 +53,7 @@ public:
     ActorSystem(const ActorSystem&) = delete;
     ActorSystem& operator=(const ActorSystem&) = delete;
 
-    void Register(const std::string& address, const std::shared_ptr<Actor>& actor) {
+    void Register(const std::shared_ptr<Actor>& actor, const std::string& address) {
         std::lock_guard<std::mutex> lock(m_mutex);
         m_actors[address] = actor;
     }
@@ -63,7 +63,7 @@ public:
         return m_actors.erase(address) == 1;
     }
 
-    std::future<boost::any> Send(const std::string& address, const boost::any& message) {
+    std::future<boost::any> Send(const boost::any& message, const std::string& address) {
         std::lock_guard<std::mutex> lock(m_mutex);
         if (m_actors.find(address) != m_actors.end()) {
             std::shared_ptr<Actor> actor = m_actors[address];

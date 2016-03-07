@@ -42,9 +42,9 @@ int main(void) {
     std::future<ccl::any> future2;
     {
         ccl::ActorSystem system;
-        system.Register("/path/actor1", actor);
-        future1 = system.Send("/path/actor1", (char*) "4");
-        future2 = system.Send("/path/actor2", (char*) "5");
+        system.Register(actor, "/path/actor1");
+        future1 = system.Send((char*) "4", "/path/actor1");
+        future2 = system.Send((char*) "5", "/path/actor2");
         system.Broadcast(std::string("6"));
         system.Broadcast((Point) {7, 8});
         system.Broadcast(9L);
