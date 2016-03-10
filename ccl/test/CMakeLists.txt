@@ -7,7 +7,7 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-cove
 
 include_directories(
     ${PROJECT_SOURCE_DIR}/src
-    /usr/local/include
+    /usr/local/include # gtest
 )
 link_directories(/usr/local/lib)
 

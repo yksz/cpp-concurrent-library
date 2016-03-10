@@ -12,38 +12,36 @@ class Object {
 public:
     static int s_copyConstructorCount;
     static int s_copyAssignmentCount;
+    static int s_moveConstructorCount;
+    static int s_moveAssignmentCount;
 
-    Object() {
-        std::cout << "Object: constructor\n";
-    }
+    Object() {};
 
-    ~Object() {
-        std::cout << "Object: destructor\n";
-    }
+    ~Object() {};
 
     Object(const Object&) {
-        std::cout << "Object: copy constructor\n";
         Object::s_copyConstructorCount++;
     }
 
     Object& operator=(const Object&) {
-        std::cout << "Object: copy assignment\n";
         Object::s_copyAssignmentCount++;
         return *this;
     }
 
-    Object(Object&& other) {
-        std::cout << "Object: move constructor\n";
+    Object(Object&&) {
+        Object::s_moveConstructorCount++;
     }
 
     Object& operator=(Object&&) {
-        std::cout << "Object: move assignment\n";
+        Object::s_moveAssignmentCount++;
         return *this;
     }
 };
 
 int Object::s_copyConstructorCount = 0;
 int Object::s_copyAssignmentCount = 0;
+int Object::s_moveConstructorCount = 0;
+int Object::s_moveAssignmentCount = 0;
 
 } // unnamed namespace
 
@@ -52,21 +50,25 @@ using namespace ccl;
 TEST(BlockingQueue, MoveSemantics) {
     // when:
     BlockingQueue<Object> queue;
-    std::cout << "Push begin\n";
     queue.Emplace(Object());
-    std::cout << "Push end\n";
-    Object obj;
-    std::cout << "Pop begin\n";
-    queue.Pop(obj);
-    std::cout << "Pop end\n";
 
     // then:
     EXPECT_EQ(0, Object::s_copyConstructorCount);
+    EXPECT_EQ(1, Object::s_moveConstructorCount);
+
+    // when:
+    Object obj;
+    queue.Pop(obj);
+
+    // then:
     EXPECT_EQ(0, Object::s_copyAssignmentCount);
+    EXPECT_EQ(1, Object::s_moveAssignmentCount);
 
     // cleanup:
     Object::s_copyConstructorCount = 0;
     Object::s_copyAssignmentCount = 0;
+    Object::s_moveConstructorCount = 0;
+    Object::s_moveAssignmentCount = 0;
 }
 
 TEST(BlockingQueue, Pop_Blocking) {
