@@ -14,22 +14,22 @@ struct Point {
 } // unnamed namespace
 
 int main(void) {
-    auto actor = std::make_shared<ccl::Actor>([](const ccl::any& message) -> ccl::any {
-        const std::type_info& type = message.type();
+    auto actor = std::make_shared<ccl::Actor>([](ccl::any&& msg) -> ccl::any {
+        const std::type_info& type = msg.type();
         if (type == typeid(int)) {
-            std::cout << "int: " << ccl::any_cast<int>(message) << std::endl;
+            std::cout << "int: " << ccl::any_cast<int>(msg) << std::endl;
         } else if (type == typeid(double)) {
-            std::cout << "double: " << ccl::any_cast<double>(message) << std::endl;
+            std::cout << "double: " << ccl::any_cast<double>(msg) << std::endl;
         } else if (type == typeid(char)) {
-            std::cout << "char: " << ccl::any_cast<char>(message) << std::endl;
+            std::cout << "char: " << ccl::any_cast<char>(msg) << std::endl;
         } else if (type == typeid(char*)) {
-            std::cout << "char*: " << ccl::any_cast<char*>(message) << std::endl;
+            std::cout << "char*: " << ccl::any_cast<char*>(msg) << std::endl;
             return (char*) "char*: ok";
         } else if (type == typeid(std::string)) {
-            std::cout << "string: " << ccl::any_cast<std::string>(message) << std::endl;
+            std::cout << "string: " << ccl::any_cast<std::string>(msg) << std::endl;
         } else if (type == typeid(Point)) {
-            Point p = ccl::any_cast<Point>(message);
-            std::cout << "point: x=" << p.x << ", y=" << p.y << std::endl;
+            Point& p = ccl::any_cast<Point&>(msg);
+            std::cout << "Point: x=" << p.x << ", y=" << p.y << std::endl;
         } else {
             std::cout << "others" << std::endl;
         }
@@ -47,7 +47,7 @@ int main(void) {
         future1 = system.Send((char*) "4", "/path/actor1");
         future2 = system.Send((char*) "5", "/path/actor2");
         system.Broadcast(std::string("6"));
-        system.Broadcast((Point) {7, 8});
+        system.Broadcast(Point{7, 8});
         system.Broadcast(9L);
     }
     if (future1.valid()) {

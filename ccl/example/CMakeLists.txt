@@ -4,13 +4,15 @@ if(UNIX) # include Linux
 endif()
 
 include_directories(
-    /usr/include # for boost
+    /usr/include # boost
+    /usr/local/include # boost
     ${PROJECT_SOURCE_DIR}/src
 )
 
 set(examples
     actor_boost_example
     actor_example
+    actor_performance_example
 )
 
 foreach(example IN LISTS examples)

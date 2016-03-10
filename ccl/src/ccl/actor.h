@@ -20,14 +20,14 @@ namespace ccl {
 
 class Actor final {
 private:
-    const std::function<any(const any&)> m_onReceive;
+    const std::function<any(any&&)> m_onReceive;
     std::shared_ptr<ThreadPool> m_pool;
 
 public:
-    explicit Actor(std::function<any(const any&)>&& onReceive)
+    explicit Actor(std::function<any(any&&)>&& onReceive)
             : m_onReceive(std::move(onReceive)), m_pool(std::make_shared<ThreadPool>(1)) {}
 
-    Actor(const std::shared_ptr<ThreadPool>& pool, std::function<any(const any&)>&& onReceive)
+    Actor(const std::shared_ptr<ThreadPool>& pool, std::function<any(any&&)>&& onReceive)
             : m_onReceive(std::move(onReceive)), m_pool(pool) {}
 
     ~Actor() = default;
@@ -35,9 +35,14 @@ public:
     Actor& operator=(const Actor&) = delete;
 
     std::future<any> Send(const any& message) {
-        auto task = std::make_shared<std::packaged_task<any()>>([this, message]() {
-            return m_onReceive(message);
-        });
+        struct Func {
+            Actor* actor;
+            any msg;
+            any operator()() {
+                return actor->m_onReceive(std::move(msg));
+            }
+        };
+        auto task = std::make_shared<std::packaged_task<any()>>(Func{this, message});
         m_pool->Dispatch([task]() { (*task)(); });
         return task->get_future();
     }

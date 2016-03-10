@@ -18,9 +18,9 @@ TEST(Actor, Send) {
 
     // when:
     {
-        Actor actor([&](const any& message) {
-            if (message.type() == typeid(std::string)) {
-                receivedMessage = any_cast<std::string>(message);
+        Actor actor([&](any&& msg) {
+            if (msg.type() == typeid(std::string)) {
+                receivedMessage = any_cast<std::string>(msg);
             }
             return 0;
         });
@@ -38,9 +38,9 @@ TEST(Actor, ShutdownNow) {
 
     // when:
     {
-        Actor actor([&](const any& message) {
-            if (message.type() == typeid(int)) {
-                sum += any_cast<int>(message);
+        Actor actor([&](any&& msg) {
+            if (msg.type() == typeid(int)) {
+                sum += any_cast<int>(msg);
             }
             return 0;
         });
@@ -62,15 +62,15 @@ TEST(ActorSystem, SendAndBroadcast) {
     // when:
     ActorSystem system;
     {
-        auto actor1 = std::make_shared<Actor>([&](const any& message) {
-            if (message.type() == typeid(std::string)) {
-                receivedMessage1 += any_cast<std::string>(message);
+        auto actor1 = std::make_shared<Actor>([&](any&& msg) {
+            if (msg.type() == typeid(std::string)) {
+                receivedMessage1 += any_cast<std::string>(msg);
             }
             return 0;
         });
-        auto actor2 = std::make_shared<Actor>([&](const any& message) {
-            if (message.type() == typeid(std::string)) {
-                receivedMessage2 += any_cast<std::string>(message);
+        auto actor2 = std::make_shared<Actor>([&](any&& msg) {
+            if (msg.type() == typeid(std::string)) {
+                receivedMessage2 += any_cast<std::string>(msg);
             }
             return 0;
         });
@@ -96,11 +96,11 @@ TEST(ActorSystem, Unregister) {
     // when:
     ActorSystem system;
     {
-        auto actor1 = std::make_shared<Actor>([&](const any& message) {
+        auto actor1 = std::make_shared<Actor>([&](any&& msg) {
             count++;
             return 0;
         });
-        auto actor2 = std::make_shared<Actor>([&](const any& message) {
+        auto actor2 = std::make_shared<Actor>([&](any&& msg) {
             count++;
             return 0;
         });

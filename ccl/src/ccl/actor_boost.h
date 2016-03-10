@@ -20,14 +20,14 @@ namespace ccl {
 
 class Actor final {
 private:
-    const std::function<boost::any(const boost::any&)> m_onReceive;
+    const std::function<boost::any(boost::any&&)> m_onReceive;
     std::shared_ptr<ThreadPool> m_pool;
 
 public:
-    explicit Actor(std::function<boost::any(const boost::any&)>&& onReceive)
+    explicit Actor(std::function<boost::any(boost::any&&)>&& onReceive)
             : m_onReceive(std::move(onReceive)), m_pool(std::make_shared<ThreadPool>(1)) {}
 
-    Actor(const std::shared_ptr<ThreadPool>& pool, std::function<boost::any(const boost::any&)>&& onReceive)
+    Actor(const std::shared_ptr<ThreadPool>& pool, std::function<boost::any(boost::any&&)>&& onReceive)
             : m_onReceive(std::move(onReceive)), m_pool(pool) {}
 
     ~Actor() = default;
@@ -35,9 +35,14 @@ public:
     Actor& operator=(const Actor&) = delete;
 
     std::future<boost::any> Send(const boost::any& message) {
-        auto task = std::make_shared<std::packaged_task<boost::any()>>([this, message]() {
-            return m_onReceive(message);
-        });
+        struct Func {
+            Actor* actor;
+            boost::any msg;
+            boost::any operator()() {
+                return actor->m_onReceive(std::move(msg));
+            }
+        };
+        auto task = std::make_shared<std::packaged_task<boost::any()>>(Func{this, message});
         m_pool->Dispatch([task]() { (*task)(); });
         return task->get_future();
     }
