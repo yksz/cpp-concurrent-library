@@ -5,12 +5,14 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <regex>
 #include <string>
 #include <thread>
 #include "ccl/any.h"
 #include "ccl/thread_pool.h"
 
 #ifdef CCL_ACTOR_DEBUG
+#include <cstdio>
 #define CCL_ACTOR_DEBUG_PRINTF(fmt, ...) do { printf(fmt, ## __VA_ARGS__); } while (0)
 #else
 #define CCL_ACTOR_DEBUG_PRINTF(fmt, ...)
@@ -99,6 +101,39 @@ public:
                 from, message.type().name());
         for (auto& pair : m_actors) {
             pair.second->Send(message);
+        }
+    }
+
+    void Multicast(const any& message, const std::string& address
+#ifdef CCL_ACTOR_DEBUG
+            , const char* from = __FILE__
+#endif // CCL_ACTOR_DEBUG
+            ) {
+        std::string pattern = address;
+        replace(pattern, "+", "\\w+");
+        int last = pattern.size() - 1;
+        if (pattern.at(last) == '#') {
+            pattern.replace(last, 1, ".+");
+        }
+        std::regex regex(pattern);
+        std::smatch match;
+
+        std::lock_guard<std::mutex> lock(m_mutex);
+        for (auto& pair : m_actors) {
+            if (std::regex_match(pair.first, match, regex)) {
+                CCL_ACTOR_DEBUG_PRINTF("[ccl/actor] Multicast from `%s` to `%s`: message=`%s`\n",
+                        from, address.c_str(), message.type().name());
+                pair.second->Send(message);
+            }
+        }
+    }
+
+private:
+    void replace(std::string& str, const std::string& oldstr, const std::string& newstr) {
+        std::string::size_type pos = 0;
+        while (pos = str.find(oldstr, pos), pos != std::string::npos) {
+            str.replace(pos, oldstr.size(), newstr);
+            pos += newstr.size();
         }
     }
 };

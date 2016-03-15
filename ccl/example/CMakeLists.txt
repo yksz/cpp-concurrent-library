@@ -12,6 +12,7 @@ include_directories(
 set(examples
     actor_boost_example
     actor_example
+    actor_multicast_example
     actor_performance_example
 )
 
