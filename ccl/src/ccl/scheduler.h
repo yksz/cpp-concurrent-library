@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <ctime>
 #include <chrono>
 #include <condition_variable>
@@ -14,8 +15,8 @@ namespace ccl {
 
 struct ScheduledTask {
     std::function<void()> task;
-    long executionTime; // unix time [ms]
-    long period; // [ms]
+    int64_t executionTime; // unix time [ms]
+    int64_t period; // [ms]
 };
 
 struct ScheduledTaskComparator {
@@ -84,16 +85,16 @@ public:
     Scheduler& operator=(const Scheduler&) = delete;
 
     template<typename T>
-    static long ToUnixTime(const std::chrono::time_point<T>& tp) {
+    static int64_t ToUnixTime(const std::chrono::time_point<T>& tp) {
         return std::chrono::duration_cast<std::chrono::milliseconds>(tp.time_since_epoch()).count();
     }
 
     template<typename T>
-    static std::chrono::time_point<T> ToTimePoint(long unixTime) {
-        return std::chrono::time_point<T>(std::chrono::duration<long, std::milli>(unixTime));
+    static std::chrono::time_point<T> ToTimePoint(int64_t unixTime) {
+        return std::chrono::time_point<T>(std::chrono::duration<int64_t, std::milli>(unixTime));
     }
 
-    void Schedule(long startTime, std::function<void()>&& task) {
+    void Schedule(int64_t startTime, std::function<void()>&& task) {
         {
             std::lock_guard<std::mutex> lock(m_mutex);
             m_queue.emplace((ScheduledTask) {task, startTime, 0});
@@ -101,7 +102,7 @@ public:
         m_condition.notify_one();
     }
 
-    void Schedule(long firstTime, long period, std::function<void()>&& task) {
+    void Schedule(int64_t firstTime, int64_t period, std::function<void()>&& task) {
         {
             std::lock_guard<std::mutex> lock(m_mutex);
             m_queue.emplace((ScheduledTask) {task, firstTime, period});
