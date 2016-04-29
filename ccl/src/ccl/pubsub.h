@@ -83,7 +83,7 @@ public:
         return vec;
     }
 
-    std::vector<std::shared_ptr<Actor>>& GetSubscribers(const std::string& topic) {
+    std::vector<std::shared_ptr<Actor>> GetSubscribers(const std::string& topic) {
         std::lock_guard<std::mutex> lock(m_mutex);
         return m_actors[topic];
     }
