@@ -7,10 +7,18 @@
 #include <mutex>
 #include <string>
 #include <thread>
-#include "ccl/any.h"
 #include "ccl/thread_pool.h"
+#ifdef CCL_ANY_USING_BOOST
+ #include <boost/any.hpp>
+#else
+ #include "ccl/any.h"
+#endif // CCL_ANY_USING_BOOST
 
 namespace ccl {
+
+#ifdef CCL_ANY_USING_BOOST
+using any = boost::any;
+#endif // CCL_ANY_USING_BOOST
 
 class Actor final {
 private:
