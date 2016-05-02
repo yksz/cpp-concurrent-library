@@ -27,6 +27,13 @@ public:
         m_actors[topic].push_back(actor);
     }
 
+    void Subscribe(const std::string& topic, const std::vector<std::shared_ptr<Actor>>& actors) {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        for (auto& actor : actors) {
+            m_actors[topic].push_back(actor);
+        }
+    }
+
     void Unsubscribe(const std::string& topic, const std::shared_ptr<Actor>& actor) {
         std::lock_guard<std::mutex> lock(m_mutex);
         auto& vec = m_actors[topic];
