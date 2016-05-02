@@ -1,9 +1,10 @@
 #include <iostream>
 #include <typeinfo>
+#define CCL_ANY_USING_BOOST
 #include "ccl/pubsub.h"
 
 int main(void) {
-    using namespace ccl;
+    using namespace boost;
 
     std::string recvMsg1;
     std::string recvMsg2;
