@@ -14,6 +14,7 @@ set(examples
     actor_example
     actor_multicast_example
     actor_performance_example
+    pubsub_example
 )
 
 foreach(example IN LISTS examples)
