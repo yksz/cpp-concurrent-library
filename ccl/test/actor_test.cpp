@@ -55,145 +55,41 @@ TEST(Actor, ShutdownNow) {
     EXPECT_NE(sendCount, sum);
 }
 
-TEST(ActorSystem, Unregister) {
-    // setup:
-    std::atomic<int> count(0);
-
+TEST(ActorNameSystem, Register) {
     // when:
-    ActorSystem system;
+    ActorNameSystem system;
     {
-        auto actor1 = std::make_shared<Actor>([&](any&& msg) {
-            count++;
-            return 0;
+        auto actor = std::make_shared<Actor>([](any&& msg) {
+            return std::string("ok");
         });
-        auto actor2 = std::make_shared<Actor>([&](any&& msg) {
-            count++;
-            return 0;
-        });
-        system.Register(actor1, "/path/actor1");
-        system.Register(actor2, "/path/actor2");
+        system.Register("actor", actor);
     }
 
-    // and:
-    system.Broadcast(0);
-    util::await();
-
     // then:
-    EXPECT_EQ(2, count);
+    auto actor = system.Lookup("actor");
+    EXPECT_NE(nullptr, actor);
 
     // when:
-    system.Unregister("/path/actor2");
-    system.Broadcast(0);
-    util::await();
+    auto future = actor->Send(0);
 
     // then:
-    EXPECT_EQ(3, count);
+    auto response = future.get();
+    EXPECT_EQ(typeid(std::string), response.type());
+    EXPECT_EQ("ok", any_cast<std::string>(response));
 }
 
-TEST(ActorSystem, SendAndBroadcast) {
-    // setup:
-    std::string recvMsg1;
-    std::string recvMsg2;
-    CountdownLatch latch(6);
-
+TEST(ActorNameSystem, Unregister) {
     // when:
-    ActorSystem system;
+    ActorNameSystem system;
     {
-        auto actor1 = std::make_shared<Actor>([&](any&& msg) {
-            if (msg.type() == typeid(std::string)) {
-                recvMsg1 += any_cast<std::string>(msg);
-            }
-            latch.CountDown();
+        auto actor = std::make_shared<Actor>([](any&& msg) {
             return 0;
         });
-        auto actor2 = std::make_shared<Actor>([&](any&& msg) {
-            if (msg.type() == typeid(std::string)) {
-                recvMsg2 += any_cast<std::string>(msg);
-            }
-            latch.CountDown();
-            return 0;
-        });
-        system.Register(actor1, "/path/actor1");
-        system.Register(actor2, "/path/actor2");
+        system.Register("actor", actor);
     }
-    system.Send(std::string("foo"), "/path/actor1");
-    system.Send(std::string("fizz"), "/path/actor2");
-    system.Send(std::string("bar"), "/path/actor1");
-    system.Send(std::string("bazz"), "/path/actor2");
-    system.Broadcast(std::string("!"));
-    latch.Await();
+    system.Unregister("actor");
 
     // then:
-    EXPECT_EQ("foobar!", recvMsg1);
-    EXPECT_EQ("fizzbazz!", recvMsg2);
-}
-
-TEST(ActorSystem, Multicast_ForwardMatch) {
-    // setup:
-    std::atomic<int> count(0);
-    bool fail = false;
-    CountdownLatch latch(2);
-
-    // when:
-    ActorSystem system;
-    {
-        auto actor1a = std::make_shared<Actor>([&](any&& msg) {
-            count++;
-            latch.CountDown();
-            return 0;
-        });
-        auto actor2a = std::make_shared<Actor>([&](any&& msg) {
-            count++;
-            latch.CountDown();
-            return 0;
-        });
-        auto actor2b = std::make_shared<Actor>([&](any&& msg) {
-            fail = true;
-            return 0;
-        });
-        system.Register(actor1a, "/a/actor/1");
-        system.Register(actor2a, "/a/actor/2");
-        system.Register(actor2b, "/b/actor/2");
-    }
-    system.Multicast(0, "/a/actor/#");
-    latch.Await();
-
-    // then:
-    EXPECT_EQ(2, count);
-    ASSERT_FALSE(fail);
-}
-
-TEST(ActorSystem, Multicast_PartialMatch) {
-    // setup:
-    std::atomic<int> count(0);
-    bool fail = false;
-    CountdownLatch latch(2);
-
-    // when:
-    ActorSystem system;
-    {
-        auto actor1a = std::make_shared<Actor>([&](any&& msg) {
-            fail = true;
-            return 0;
-        });
-        auto actor2a = std::make_shared<Actor>([&](any&& msg) {
-            count++;
-            latch.CountDown();
-            return 0;
-        });
-        auto actor2b = std::make_shared<Actor>([&](any&& msg) {
-            count++;
-            latch.CountDown();
-            return 0;
-        });
-        system.Register(actor1a, "/a/actor/1");
-        system.Register(actor2a, "/a/actor/2");
-        system.Register(actor2b, "/b/actor/2");
-    }
-    system.Multicast(0, "/+/actor/2");
-    latch.Await();
-
-    // then:
-    EXPECT_EQ(2, count);
-    ASSERT_FALSE(fail);
+    auto actor = system.Lookup("actor");
+    EXPECT_EQ(nullptr, actor);
 }
