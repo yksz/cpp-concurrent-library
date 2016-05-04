@@ -17,9 +17,9 @@ private:
     BlockingQueue<std::function<void()>> m_queue;
 
 public:
-    explicit ThreadPool(size_t nThreads, size_t queueSize = 0)
+    explicit ThreadPool(size_t nthreads, size_t queueSize = 0)
             : m_shutdownNow(false), m_queue(queueSize) {
-        for (size_t i = 0; i < nThreads; i++) {
+        for (size_t i = 0; i < nthreads; i++) {
             auto worker = [this]() {
                 while (true) {
                     std::function<void()> task;

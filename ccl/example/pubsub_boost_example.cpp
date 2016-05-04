@@ -41,7 +41,7 @@ int main(void) {
     });
 
     ccl::PubSub broker;
-    broker.Subscribe("/a/1", { actor1, actor2 });
+    broker.Subscribe("/a/1", {actor1, actor2});
     broker.Subscribe("/a/2", actor3);
     broker.Subscribe("/b/2", actor4);
     broker.Publish("/a/1", std::string(" publish"));

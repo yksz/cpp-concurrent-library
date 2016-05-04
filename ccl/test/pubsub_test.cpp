@@ -18,7 +18,7 @@ TEST(PubSub, Subscribe) {
     });
     PubSub broker;
     broker.Subscribe(topic1, actor1);
-    broker.Subscribe(topic2, { actor1, actor2 });
+    broker.Subscribe(topic2, {actor1, actor2});
 
     // then:
     EXPECT_EQ(1, broker.GetSubscribers(topic1).size());
@@ -37,7 +37,7 @@ TEST(PubSub, Unsubscribe) {
         return 0;
     });
     PubSub broker;
-    broker.Subscribe(topic, { actor1, actor2 });
+    broker.Subscribe(topic, {actor1, actor2});
     broker.Unsubscribe(topic, actor1);
 
     // then:
@@ -67,7 +67,7 @@ TEST(PubSub, Publish) {
         return 0;
     });
     PubSub broker;
-    broker.Subscribe(topic, { actor1, actor2 });
+    broker.Subscribe(topic, {actor1, actor2});
     broker.Publish(topic, std::string("foo"));
     broker.Publish(topic, std::string("bar"));
     broker.Publish("/unknown", std::string("bazz"));
