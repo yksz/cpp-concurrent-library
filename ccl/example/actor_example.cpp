@@ -47,5 +47,15 @@ int main(void) {
     if (response.type() == typeid(std::string)) {
         std::cout << "response: " << any_cast<std::string>(response) << std::endl;
     }
+
+    // Output:
+    // int: 1
+    // double: 2
+    // char: 3
+    // char*: 4
+    // string: 5
+    // Point: x=6, y=7
+    // others
+    // response: others: ok
     return 0;
 }

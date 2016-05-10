@@ -1,3 +1,4 @@
+#include <chrono>
 #include <iostream>
 #include <typeinfo>
 #define CCL_ANY_USING_BOOST
@@ -49,9 +50,17 @@ int main(void) {
     broker.Multicast("/+/2", std::string(" multicast+"));
     broker.Broadcast(std::string(" broadcast"));
 
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
     std::cout << "actor1:" << recvMsg1 << std::endl;
     std::cout << "actor2:" << recvMsg2 << std::endl;
     std::cout << "actor3:" << recvMsg3 << std::endl;
     std::cout << "actor4:" << recvMsg4 << std::endl;
+
+    // Output:
+    // actor1: publish multicast# broadcast
+    // actor2: publish multicast# broadcast
+    // actor3: multicast# multicast+ broadcast
+    // actor4: multicast+ broadcast
     return 0;
 }
