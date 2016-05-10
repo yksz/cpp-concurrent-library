@@ -102,7 +102,7 @@ public:
         m_condition.notify_one();
     }
 
-    void Schedule(int64_t firstTime, int64_t period, std::function<void()>&& task) {
+    void SchedulePeriodically(int64_t firstTime, int64_t period, std::function<void()>&& task) {
         {
             std::lock_guard<std::mutex> lock(m_mutex);
             m_queue.emplace((ScheduledTask) {task, firstTime, period});

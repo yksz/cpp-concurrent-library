@@ -33,7 +33,7 @@ TEST(Scheduler, Schedule) {
     latch.Await();
 }
 
-TEST(ThreadPool, Schedule_period) {
+TEST(Scheduler, SchedulePeriodically) {
     // setup:
     auto now = system_clock::now();
     auto after = now + milliseconds(100);
@@ -42,7 +42,7 @@ TEST(ThreadPool, Schedule_period) {
 
     // when:
     Scheduler scheduler;
-    scheduler.Schedule(Scheduler::ToUnixTime(after), 100, [&]() {
+    scheduler.SchedulePeriodically(Scheduler::ToUnixTime(after), 100, [&]() {
         auto newNow = system_clock::now();
         auto diff = duration_cast<milliseconds>(newNow - now);
         // then:
