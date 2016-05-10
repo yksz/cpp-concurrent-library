@@ -110,7 +110,7 @@ TEST(PubSub, Broadcast) {
     EXPECT_EQ("bazz", recvMsg2);
 }
 
-TEST(ActorSystem, Multicast_ForwardMatch) {
+TEST(PubSub, Multicast_ForwardMatch) {
     // setup:
     std::string recvMsg1;
     std::string recvMsg2;
@@ -149,7 +149,7 @@ TEST(ActorSystem, Multicast_ForwardMatch) {
     EXPECT_TRUE(ok);
 }
 
-TEST(ActorSystem, Multicast_PartialMatch) {
+TEST(PubSub, Multicast_PartialMatch) {
     // setup:
     std::string recvMsg1;
     std::string recvMsg2;
