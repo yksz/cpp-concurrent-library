@@ -16,6 +16,7 @@ set(examples
     countdown_latch_example
     pubsub_boost_example
     pubsub_example
+    scheduler_example
     thread_pool_example
 )
 
