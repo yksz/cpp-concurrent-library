@@ -9,25 +9,27 @@ using namespace std::chrono;
 
 TEST(Scheduler, Schedule) {
     // setup:
+    const int after1 = 100;
+    const int after2 = 200;
     auto now = system_clock::now();
-    auto after1 = now + milliseconds(100);
-    auto after2 = now + milliseconds(200);
+    auto startTime1 = now + milliseconds(after1);
+    auto startTime2 = now + milliseconds(after2);
     CountdownLatch latch(2);
 
     // when:
     Scheduler scheduler;
-    scheduler.Schedule(Scheduler::ToUnixTime(after1), [&]() {
+    scheduler.Schedule(Scheduler::ToUnixTime(startTime1), [&]() {
         auto newNow = system_clock::now();
         auto diff = duration_cast<milliseconds>(newNow - now);
         // then:
-        EXPECT_NEAR(100, diff.count(), 10);
+        EXPECT_NEAR(after1, diff.count(), after1 * 0.1);
         latch.CountDown();
     });
-    scheduler.Schedule(Scheduler::ToUnixTime(after2), [&]() {
+    scheduler.Schedule(Scheduler::ToUnixTime(startTime2), [&]() {
         auto newNow = system_clock::now();
         auto diff = duration_cast<milliseconds>(newNow - now);
         // then:
-        EXPECT_NEAR(200, diff.count(), 10);
+        EXPECT_NEAR(after2, diff.count(), after2 * 0.1);
         latch.CountDown();
     });
     latch.Await();
@@ -35,18 +37,20 @@ TEST(Scheduler, Schedule) {
 
 TEST(Scheduler, SchedulePeriodically) {
     // setup:
+    const int period = 100;
+    const int repeatCount = 2;
     auto now = system_clock::now();
-    auto after = now + milliseconds(100);
-    int count = 1;
-    CountdownLatch latch(2);
+    int count = 0;
+    CountdownLatch latch(repeatCount + 1);
 
     // when:
     Scheduler scheduler;
-    scheduler.SchedulePeriodically(Scheduler::ToUnixTime(after), 100, [&]() {
+    scheduler.SchedulePeriodically(Scheduler::ToUnixTime(now), period, repeatCount, [&]() {
         auto newNow = system_clock::now();
         auto diff = duration_cast<milliseconds>(newNow - now);
         // then:
-        EXPECT_NEAR((count++) * 100, diff.count(), 10);
+        EXPECT_NEAR(count * period, diff.count(), period * 0.1);
+        count++;
         latch.CountDown();
     });
     latch.Await();

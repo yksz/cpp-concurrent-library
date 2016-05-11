@@ -17,6 +17,7 @@ struct ScheduledTask {
     std::function<void()> task;
     int64_t executionTime; // unix time [ms]
     int64_t period; // [ms]
+    int16_t repeatCount;
 };
 
 struct ScheduledTaskComparator {
@@ -52,8 +53,9 @@ public:
                     auto now = Scheduler::ToUnixTime(system_clock::now());
                     if (schedTask.executionTime <= now) { // fired
                         m_queue.pop();
-                        if (schedTask.period > 0) { // repeat
+                        if (schedTask.period > 0 && schedTask.repeatCount > 0) { // repeat
                             schedTask.executionTime += schedTask.period;
+                            schedTask.repeatCount--;
                             m_queue.push(schedTask); // reschedule
                         }
                     } else {
@@ -97,15 +99,18 @@ public:
     void Schedule(int64_t startTime, std::function<void()>&& task) {
         {
             std::lock_guard<std::mutex> lock(m_mutex);
-            m_queue.emplace((ScheduledTask) {task, startTime, 0});
+            m_queue.emplace(ScheduledTask{task, startTime, 0, 0});
         }
         m_condition.notify_one();
     }
 
-    void SchedulePeriodically(int64_t firstTime, int64_t period, std::function<void()>&& task) {
+    // Schedules the task for repeated execution.
+    // Executes the task forever if repeatCount is 0.
+    void SchedulePeriodically(int64_t firstTime, int64_t period, int16_t repeatCount,
+            std::function<void()>&& task) {
         {
             std::lock_guard<std::mutex> lock(m_mutex);
-            m_queue.emplace((ScheduledTask) {task, firstTime, period});
+            m_queue.emplace(ScheduledTask{task, firstTime, period, repeatCount});
         }
         m_condition.notify_one();
     }

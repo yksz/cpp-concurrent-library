@@ -4,17 +4,34 @@
 #include <iostream>
 #include "ccl/scheduler.h"
 
+const static int kPeriod = 1000; // [ms]
+const static int kRepeatCount = 5;
+
 int main(void) {
     using namespace std::chrono;
 
+    int sec = time(nullptr) % 60;
+    int waitTime = (10 - sec % 10) * 1000; // [ms]
+    auto firstTime = system_clock::now() + milliseconds(waitTime); // at hh:mm:s0
+    auto firstUnixTime = ccl::Scheduler::ToUnixTime(firstTime);
+
     ccl::Scheduler scheduler;
-    auto after1s = system_clock::now() + seconds(1);
-    scheduler.SchedulePeriodically(ccl::Scheduler::ToUnixTime(after1s), 1000, [=]() {
-        char s[16];
+    scheduler.SchedulePeriodically(firstUnixTime, kPeriod, kRepeatCount, []() {
         time_t now = time(nullptr);
+        char s[16];
         strftime(s, sizeof(s), "%H:%M:%S", localtime(&now));
         printf("%s\n", s);
     });
-    std::this_thread::sleep_for(std::chrono::seconds(10));
+
+    long sleepTime = kPeriod * (kRepeatCount + 1) + waitTime; // [ms]
+    std::this_thread::sleep_for(std::chrono::milliseconds(sleepTime));
+
+    // Output:
+    // hh:mm:s0
+    // hh:mm:s1
+    // hh:mm:s2
+    // hh:mm:s3
+    // hh:mm:s4
+    // hh:mm:s5
     return 0;
 }
