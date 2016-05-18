@@ -4,8 +4,8 @@
 #include <iostream>
 #include "ccl/scheduler.h"
 
-const static int kPeriod = 1000; // [ms]
-const static int kRepeatCount = 5;
+static const int kPeriod = 1000; // [ms]
+static const int kRepeatCount = 5;
 
 int main(void) {
     using namespace std::chrono;
