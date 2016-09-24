@@ -20,6 +20,7 @@ install(FILES ${header_files} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/ccl)
 ### Test
 if(build_tests)
     enable_testing()
+    add_subdirectory(vendor/googletest)
     add_subdirectory(test)
 endif()
 

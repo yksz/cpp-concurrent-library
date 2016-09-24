@@ -7,9 +7,12 @@
 
 include_directories(
     ${PROJECT_SOURCE_DIR}/src
-    /usr/local/include # gtest
+    ${PROJECT_SOURCE_DIR}/vendor/googletest/googletest/include
+#    /usr/local/include # if googletest is installed
 )
-link_directories(/usr/local/lib)
+link_directories(
+#    /usr/local/lib # if googletest is installed
+)
 
 set(tests
     actor_test
