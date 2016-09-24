@@ -1,13 +1,15 @@
+[![Build Status](https://travis-ci.org/yksz/cpp-concurrent-library.svg?branch=master)](https://travis-ci.org/yksz/cpp-concurrent-library)
+
 # What is this?
 This is a header only concurrent library for C++.
 
 This library's main features:
-* Actor
-* Blocking queue
-* Countdown latch
-* Publish-subscriber
-* Scheduler
-* Thread pool
+- Actor
+- Blocking queue
+- Countdown latch
+- Publish-subscriber
+- Scheduler
+- Thread pool
 
 This library uses **"any"** of boost library.
 
@@ -20,7 +22,7 @@ sudo make install
 ```
 
 # System Requirements
-C++11 or above
+C++11 or later
 
 # License
 The MIT license
