@@ -1,0 +1,3 @@
+[submodule "ccl/vendor/googletest"]
+	path = ccl/vendor/googletest
+	url = https://github.com/google/googletest.git
