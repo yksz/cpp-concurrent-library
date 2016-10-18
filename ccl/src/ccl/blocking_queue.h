@@ -43,13 +43,13 @@ public:
         m_condition.notify_one();
     }
 
-    void Emplace(T&& element) {
+    void Push(T&& element) {
         {
             std::unique_lock<std::mutex> lock(m_mutex);
             while (m_queue.size() > m_capacity - 1) {
                 m_condition.wait(lock);
             }
-            m_queue.emplace(std::move(element));
+            m_queue.push(std::move(element));
         }
         m_condition.notify_one();
     }

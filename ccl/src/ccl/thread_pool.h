@@ -51,7 +51,7 @@ public:
 
     void Dispatch(std::function<void()>&& task) {
         if (task.target_type() != m_poison.target_type()) {
-            m_queue.Emplace(std::move(task));
+            m_queue.Push(std::move(task));
         }
     }
 

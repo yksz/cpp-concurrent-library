@@ -48,20 +48,37 @@ int Object::s_moveAssignmentCount = 0;
 using namespace ccl;
 
 TEST(BlockingQueue, MoveSemantics) {
-    // when:
+    // setup:
     BlockingQueue<Object> queue;
-    queue.Emplace(Object());
+
+    // when: push lvalue
+    Object obj1;
+    queue.Push(obj1);
 
     // then:
-    EXPECT_EQ(0, Object::s_copyConstructorCount);
+    EXPECT_EQ(1, Object::s_copyConstructorCount);
+    EXPECT_EQ(0, Object::s_moveConstructorCount);
+
+    // when: push rvalue
+    queue.Push(Object{});
+
+    // then:
+    EXPECT_EQ(1, Object::s_copyConstructorCount);
     EXPECT_EQ(1, Object::s_moveConstructorCount);
 
-    // when:
-    Object obj;
-    queue.Pop(obj);
+    // when: pop copy
+    queue.Pop();
 
     // then:
-    EXPECT_EQ(0, Object::s_copyAssignmentCount);
+    EXPECT_EQ(1, Object::s_copyAssignmentCount);
+    EXPECT_EQ(0, Object::s_moveAssignmentCount);
+
+    // when: pop move
+    Object obj2;
+    queue.Pop(obj2);
+
+    // then:
+    EXPECT_EQ(1, Object::s_copyAssignmentCount);
     EXPECT_EQ(1, Object::s_moveAssignmentCount);
 
     // cleanup:
@@ -73,7 +90,7 @@ TEST(BlockingQueue, MoveSemantics) {
 
 TEST(BlockingQueue, Pop_Blocking) {
     // setup:
-    std::string pushedElement = "element";
+    const std::string pushedElement = "element";
 
     // when:
     BlockingQueue<std::string> queue;
@@ -134,15 +151,16 @@ TEST(BlockingQueue, Push_NonBlocking) {
     EXPECT_EQ(count, queue.Size());
 }
 
-TEST(BlockingQueue, Push_FunctionObject) {
+TEST(BlockingQueue, PushLvalue_FunctionObject) {
     // setup:
     int count = 0;
 
     // when:
     BlockingQueue<std::function<void()>> queue;
-    queue.Push([&]() {
-        count++;
-    });
+    {
+        std::function<void()> task = [&]() { count++; };
+        queue.Push(task);
+    }
 
     // and:
     std::function<void()> task = queue.Pop();
@@ -152,13 +170,13 @@ TEST(BlockingQueue, Push_FunctionObject) {
     EXPECT_EQ(1, count);
 }
 
-TEST(BlockingQueue, Emplace_FunctionObject) {
+TEST(BlockingQueue, PushRvalue_FunctionObject) {
     // setup:
     int count = 0;
 
     // when:
     BlockingQueue<std::function<void()>> queue;
-    queue.Emplace([&]() {
+    queue.Push([&]() {
         count++;
     });
 
