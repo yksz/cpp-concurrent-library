@@ -13,6 +13,7 @@ set(examples
     actor_boost_example
     actor_example
     actor_performance_example
+    blocking_queue_example
     countdown_latch_example
     pubsub_boost_example
     pubsub_example

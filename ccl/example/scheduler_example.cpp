@@ -24,7 +24,7 @@ int main(void) {
     });
 
     long sleepTime = kPeriod * (kRepeatCount + 1) + waitTime; // [ms]
-    std::this_thread::sleep_for(std::chrono::milliseconds(sleepTime));
+    std::this_thread::sleep_for(milliseconds(sleepTime));
 
     // Output:
     // hh:mm:s0
