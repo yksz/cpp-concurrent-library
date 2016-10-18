@@ -99,7 +99,7 @@ public:
     void Schedule(int64_t startTime, std::function<void()>&& task) {
         {
             std::lock_guard<std::mutex> lock(m_mutex);
-            m_queue.emplace(ScheduledTask{task, startTime, 0, 0});
+            m_queue.push(ScheduledTask{task, startTime, 0, 0});
         }
         m_condition.notify_one();
     }
@@ -110,7 +110,7 @@ public:
             std::function<void()>&& task) {
         {
             std::lock_guard<std::mutex> lock(m_mutex);
-            m_queue.emplace(ScheduledTask{task, firstTime, period, repeatCount});
+            m_queue.push(ScheduledTask{task, firstTime, period, repeatCount});
         }
         m_condition.notify_one();
     }
