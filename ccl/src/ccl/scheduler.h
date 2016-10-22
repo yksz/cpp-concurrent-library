@@ -13,15 +13,15 @@
 
 namespace ccl {
 
-struct ScheduledTask {
+struct scheduledTask {
     std::function<void()> task;
     int64_t executionTime; // unix time [ms]
     int64_t period; // [ms]
     int16_t repeatCount;
 };
 
-struct ScheduledTaskComparator {
-    bool operator()(const ScheduledTask& a, const ScheduledTask& b) {
+struct scheduledTaskComparator {
+    bool operator()(const scheduledTask& a, const scheduledTask& b) {
         return a.executionTime > b.executionTime;
     }
 };
@@ -30,7 +30,7 @@ class Scheduler final {
 private:
     bool m_stopped;
     std::unique_ptr<std::thread> m_thread;
-    std::priority_queue<ScheduledTask, std::vector<ScheduledTask>, ScheduledTaskComparator> m_queue;
+    std::priority_queue<scheduledTask, std::vector<scheduledTask>, scheduledTaskComparator> m_queue;
     std::condition_variable m_condition;
     std::mutex m_mutex;
 
@@ -40,7 +40,7 @@ public:
 
         auto worker = [this]() {
             while (true) {
-                ScheduledTask schedTask;
+                scheduledTask schedTask;
                 {
                     std::unique_lock<std::mutex> lock(m_mutex);
                     while (!m_stopped && m_queue.empty()) {
@@ -86,20 +86,10 @@ public:
     Scheduler(const Scheduler&) = delete;
     Scheduler& operator=(const Scheduler&) = delete;
 
-    template<typename T>
-    static int64_t ToUnixTime(const std::chrono::time_point<T>& tp) {
-        return std::chrono::duration_cast<std::chrono::milliseconds>(tp.time_since_epoch()).count();
-    }
-
-    template<typename T>
-    static std::chrono::time_point<T> ToTimePoint(int64_t unixTime) {
-        return std::chrono::time_point<T>(std::chrono::duration<int64_t, std::milli>(unixTime));
-    }
-
     void Schedule(int64_t startTime, std::function<void()>&& task) {
         {
             std::lock_guard<std::mutex> lock(m_mutex);
-            m_queue.push(ScheduledTask{task, startTime, 0, 0});
+            m_queue.push(scheduledTask{task, startTime, 0, 0});
         }
         m_condition.notify_one();
     }
@@ -110,9 +100,19 @@ public:
             std::function<void()>&& task) {
         {
             std::lock_guard<std::mutex> lock(m_mutex);
-            m_queue.push(ScheduledTask{task, firstTime, period, repeatCount});
+            m_queue.push(scheduledTask{task, firstTime, period, repeatCount});
         }
         m_condition.notify_one();
+    }
+
+    template<typename T>
+    static int64_t ToUnixTime(const std::chrono::time_point<T>& tp) {
+        return std::chrono::duration_cast<std::chrono::milliseconds>(tp.time_since_epoch()).count();
+    }
+
+    template<typename T>
+    static std::chrono::time_point<T> ToTimePoint(int64_t unixTime) {
+        return std::chrono::time_point<T>(std::chrono::duration<int64_t, std::milli>(unixTime));
     }
 };
 
