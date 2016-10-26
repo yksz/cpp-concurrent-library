@@ -37,7 +37,7 @@ public:
 
     void CountDown() {
         std::lock_guard<std::mutex> lock(m_mutex);
-        if (m_count <= 0) {
+        if (m_count == 0) {
             return;
         }
         m_count--;

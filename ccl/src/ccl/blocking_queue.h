@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <condition_variable>
 #include <mutex>
 #include <queue>
@@ -16,7 +17,7 @@ private:
     std::mutex m_mutex;
 
 public:
-    BlockingQueue(size_t capacity = 0) : m_capacity(capacity) {};
+    BlockingQueue(size_t capacity = 0) : m_capacity(capacity ? capacity : SIZE_MAX) {};
 
     ~BlockingQueue() = default;
     BlockingQueue(const BlockingQueue&) = delete;

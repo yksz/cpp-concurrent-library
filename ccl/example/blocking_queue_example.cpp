@@ -7,7 +7,7 @@
 static const std::string element = "element";
 
 int main(void) {
-    ccl::BlockingQueue<std::string> queue;
+    ccl::BlockingQueue<std::string> queue(1);
     std::thread th([&]() {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         std::cout << "push" << std::endl;
