@@ -1,91 +1,114 @@
 #include "ccl/blocking_queue.h"
 #include <chrono>
-#include <iostream>
 #include <thread>
 #include <gtest/gtest.h>
-#include "util.h"
 #include "ccl/countdown_latch.h"
+#include "util.h"
 
 namespace {
 
 class Object {
 public:
-    static int s_copyConstructorCount;
-    static int s_copyAssignmentCount;
-    static int s_moveConstructorCount;
-    static int s_moveAssignmentCount;
+    static int copyConstructorCount;
+    static int copyAssignmentCount;
+    static int moveConstructorCount;
+    static int moveAssignmentCount;
 
-    Object() {};
+    static void ClearCounts() {
+        Object::copyConstructorCount = 0;
+        Object::copyAssignmentCount = 0;
+        Object::moveConstructorCount = 0;
+        Object::moveAssignmentCount = 0;
+    }
 
-    ~Object() {};
+    Object() = default;
+    ~Object() = default;
 
     Object(const Object&) {
-        Object::s_copyConstructorCount++;
+        Object::copyConstructorCount++;
     }
 
     Object& operator=(const Object&) {
-        Object::s_copyAssignmentCount++;
+        Object::copyAssignmentCount++;
         return *this;
     }
 
     Object(Object&&) {
-        Object::s_moveConstructorCount++;
+        Object::moveConstructorCount++;
     }
 
     Object& operator=(Object&&) {
-        Object::s_moveAssignmentCount++;
+        Object::moveAssignmentCount++;
         return *this;
     }
+
+    void DoNothing() {}
 };
 
-int Object::s_copyConstructorCount = 0;
-int Object::s_copyAssignmentCount = 0;
-int Object::s_moveConstructorCount = 0;
-int Object::s_moveAssignmentCount = 0;
+int Object::copyConstructorCount = 0;
+int Object::copyAssignmentCount = 0;
+int Object::moveConstructorCount = 0;
+int Object::moveAssignmentCount = 0;
 
 } // unnamed namespace
 
 using namespace ccl;
 
-TEST(BlockingQueue, MoveSemantics) {
+TEST(BlockingQueue, PushLvalue_MoveSemantics) {
     // setup:
     BlockingQueue<Object> queue;
+    Object::ClearCounts();
 
-    // when: push lvalue
-    Object obj1;
-    queue.Push(obj1);
+    // when:
+    Object obj;
+    queue.Push(obj);
 
     // then:
-    EXPECT_EQ(1, Object::s_copyConstructorCount);
-    EXPECT_EQ(0, Object::s_moveConstructorCount);
+    EXPECT_EQ(1, Object::copyConstructorCount);
+    EXPECT_EQ(0, Object::moveConstructorCount);
+}
 
-    // when: push rvalue
+TEST(BlockingQueue, PushRvalue_MoveSemantics) {
+    // setup:
+    BlockingQueue<Object> queue;
+    Object::ClearCounts();
+
+    // when:
     queue.Push(Object{});
 
     // then:
-    EXPECT_EQ(1, Object::s_copyConstructorCount);
-    EXPECT_EQ(1, Object::s_moveConstructorCount);
+    EXPECT_EQ(0, Object::copyConstructorCount);
+    EXPECT_EQ(1, Object::moveConstructorCount);
+}
 
-    // when: pop copy
-    queue.Pop();
+TEST(BlockingQueue, PopReturn_MoveSemantics) {
+    // setup:
+    BlockingQueue<Object> queue;
+    queue.Push(Object{});
+    Object::ClearCounts();
+
+    // when:
+    Object obj = queue.Pop();
+    obj.DoNothing();
 
     // then:
-    EXPECT_EQ(1, Object::s_copyAssignmentCount);
-    EXPECT_EQ(0, Object::s_moveAssignmentCount);
+    EXPECT_EQ(0, Object::copyAssignmentCount);
+    EXPECT_EQ(1, Object::moveAssignmentCount);
+}
 
-    // when: pop move
-    Object obj2;
-    queue.Pop(obj2);
+TEST(BlockingQueue, PopReference_MoveSemantics) {
+    // setup:
+    BlockingQueue<Object> queue;
+    queue.Push(Object{});
+    Object::ClearCounts();
+
+    // when:
+    Object obj;
+    queue.Pop(obj);
 
     // then:
-    EXPECT_EQ(1, Object::s_copyAssignmentCount);
-    EXPECT_EQ(1, Object::s_moveAssignmentCount);
-
-    // cleanup:
-    Object::s_copyConstructorCount = 0;
-    Object::s_copyAssignmentCount = 0;
-    Object::s_moveConstructorCount = 0;
-    Object::s_moveAssignmentCount = 0;
+    EXPECT_EQ(0, Object::copyAssignmentCount);
+    EXPECT_EQ(1, Object::moveAssignmentCount);
 }
 
 TEST(BlockingQueue, Pop_Blocking) {

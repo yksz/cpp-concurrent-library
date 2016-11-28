@@ -7,8 +7,8 @@
 #include <mutex>
 #include <thread>
 #include <gtest/gtest.h>
-#include "util.h"
 #include "ccl/countdown_latch.h"
+#include "util.h"
 
 using namespace ccl;
 

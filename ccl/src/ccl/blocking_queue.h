@@ -36,7 +36,7 @@ public:
     void Push(const T& element) {
         {
             std::unique_lock<std::mutex> lock(m_mutex);
-            while (m_queue.size() > m_capacity - 1) {
+            while (m_queue.size() + 1 > m_capacity) {
                 m_condition.wait(lock);
             }
             m_queue.push(element);
@@ -47,7 +47,7 @@ public:
     void Push(T&& element) {
         {
             std::unique_lock<std::mutex> lock(m_mutex);
-            while (m_queue.size() > m_capacity - 1) {
+            while (m_queue.size() + 1 > m_capacity) {
                 m_condition.wait(lock);
             }
             m_queue.push(std::move(element));
@@ -62,7 +62,7 @@ public:
             while (m_queue.empty()) {
                 m_condition.wait(lock);
             }
-            element = m_queue.front();
+            element = std::move(m_queue.front());
             m_queue.pop();
         }
         m_condition.notify_one();
