@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <atomic>
 #include <functional>
 #include <thread>
@@ -17,7 +18,7 @@ private:
     BlockingQueue<std::function<void()>> m_queue;
 
 public:
-    explicit ThreadPool(size_t nthreads, size_t queueSize = 0)
+    explicit ThreadPool(size_t nthreads, size_t queueSize = SIZE_MAX)
             : m_shutdownNow(false), m_queue(queueSize) {
         for (size_t i = 0; i < nthreads; i++) {
             auto worker = [this]() {

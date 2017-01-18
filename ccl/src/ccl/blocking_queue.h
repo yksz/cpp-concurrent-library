@@ -17,7 +17,7 @@ private:
     std::mutex m_mutex;
 
 public:
-    BlockingQueue(size_t capacity = 0) : m_capacity(capacity ? capacity : SIZE_MAX) {};
+    BlockingQueue(size_t capacity = SIZE_MAX) : m_capacity(capacity ? capacity : SIZE_MAX) {};
 
     ~BlockingQueue() = default;
     BlockingQueue(const BlockingQueue&) = delete;
