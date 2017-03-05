@@ -24,7 +24,7 @@ public:
             auto worker = [this]() {
                 while (true) {
                     std::function<void()> task;
-                    m_queue.Pop(task);
+                    m_queue.Pop(&task);
                     if (task.target_type() == m_poison.target_type()) {
                         return;
                     }

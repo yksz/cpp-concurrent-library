@@ -96,7 +96,7 @@ TEST(BlockingQueue, PopReturn_MoveSemantics) {
     EXPECT_EQ(1, Object::moveAssignmentCount);
 }
 
-TEST(BlockingQueue, PopReference_MoveSemantics) {
+TEST(BlockingQueue, PopPointer_MoveSemantics) {
     // setup:
     BlockingQueue<Object> queue;
     queue.Push(Object{});
@@ -104,30 +104,11 @@ TEST(BlockingQueue, PopReference_MoveSemantics) {
 
     // when:
     Object obj;
-    queue.Pop(obj);
+    queue.Pop(&obj);
 
     // then:
     EXPECT_EQ(0, Object::copyAssignmentCount);
     EXPECT_EQ(1, Object::moveAssignmentCount);
-}
-
-TEST(BlockingQueue, Pop_Blocking) {
-    // setup:
-    const std::string pushedElement = "element";
-
-    // when:
-    BlockingQueue<std::string> queue;
-    std::thread th([](BlockingQueue<std::string>& queue, const std::string& element) {
-        util::doHeavyTask();
-        queue.Push(element);
-    }, std::ref(queue), std::ref(pushedElement));
-    std::string poppedElement = queue.Pop();
-
-    // then:
-    EXPECT_EQ(pushedElement, poppedElement);
-
-    // clenup:
-    th.join();
 }
 
 TEST(BlockingQueue, Push_Blocking) {
@@ -174,6 +155,25 @@ TEST(BlockingQueue, Push_NonBlocking) {
     EXPECT_EQ(count, queue.Size());
 }
 
+TEST(BlockingQueue, Pop_Blocking) {
+    // setup:
+    const std::string pushedElement = "element";
+
+    // when:
+    BlockingQueue<std::string> queue;
+    std::thread th([](BlockingQueue<std::string>& queue, const std::string& element) {
+        util::doHeavyTask();
+        queue.Push(element);
+    }, std::ref(queue), std::ref(pushedElement));
+    std::string poppedElement = queue.Pop();
+
+    // then:
+    EXPECT_EQ(pushedElement, poppedElement);
+
+    // clenup:
+    th.join();
+}
+
 TEST(BlockingQueue, PushLvalue_FunctionObject) {
     // setup:
     int count = 0;
@@ -205,7 +205,7 @@ TEST(BlockingQueue, PushRvalue_FunctionObject) {
 
     // and:
     std::function<void()> task;
-    queue.Pop(task);
+    queue.Pop(&task);
     task();
 
     // then:
