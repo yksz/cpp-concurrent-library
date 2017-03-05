@@ -46,7 +46,7 @@ public:
     }
 };
 
-} // unnamed namespace
+} // namespace
 
 int main(void) {
     auto actor = std::make_shared<ccl::Actor>([](ccl::any&& msg) -> ccl::any {

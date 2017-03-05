@@ -1,7 +1,7 @@
 #include <future>
 #include <iostream>
 #include <typeinfo>
-#define CCL_ANY_USING_BOOST
+#define CCL_USE_BOOST_ANY
 #include "ccl/actor.h"
 
 namespace {
@@ -11,7 +11,7 @@ struct Point {
     int y;
 };
 
-} // unnamed namespace
+} // namespace
 
 int main(void) {
     using namespace boost;

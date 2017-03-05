@@ -8,17 +8,17 @@
 #include <string>
 #include <thread>
 #include "ccl/thread_pool.h"
-#ifdef CCL_ANY_USING_BOOST
+#ifdef CCL_USE_BOOST_ANY
  #include <boost/any.hpp>
 #else
  #include "ccl/any.h"
-#endif // CCL_ANY_USING_BOOST
+#endif // CCL_USE_BOOST_ANY
 
 namespace ccl {
 
-#ifdef CCL_ANY_USING_BOOST
+#ifdef CCL_USE_BOOST_ANY
 using any = boost::any;
-#endif // CCL_ANY_USING_BOOST
+#endif // CCL_USE_BOOST_ANY
 
 class Actor final {
 private:

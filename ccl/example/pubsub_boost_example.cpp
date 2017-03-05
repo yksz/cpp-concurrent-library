@@ -1,7 +1,7 @@
 #include <chrono>
 #include <iostream>
 #include <typeinfo>
-#define CCL_ANY_USING_BOOST
+#define CCL_USE_BOOST_ANY
 #include "ccl/pubsub.h"
 
 int main(void) {

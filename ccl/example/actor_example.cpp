@@ -10,7 +10,7 @@ struct Point {
     int y;
 };
 
-} // unnamed namespace
+} // namespace
 
 int main(void) {
     using namespace ccl;

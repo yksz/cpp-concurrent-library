@@ -50,7 +50,7 @@ int Object::copyAssignmentCount = 0;
 int Object::moveConstructorCount = 0;
 int Object::moveAssignmentCount = 0;
 
-} // unnamed namespace
+} // namespace
 
 using namespace ccl;
 
