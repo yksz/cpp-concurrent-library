@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <chrono>
 #include <condition_variable>
 #include <mutex>
 #include <queue>
@@ -55,6 +56,36 @@ public:
         m_condition.notify_one();
     }
 
+    template<class Rep, class Period>
+    std::cv_status Push(const T& element, const std::chrono::duration<Rep, Period>& timeout) {
+        {
+            std::unique_lock<std::mutex> lock(m_mutex);
+            while (m_queue.size() + 1 > m_capacity) {
+                if (m_condition.wait_for(lock, timeout) == std::cv_status::timeout) {
+                    return std::cv_status::timeout;
+                }
+            }
+            m_queue.push(element);
+        }
+        m_condition.notify_one();
+        return std::cv_status::no_timeout;
+    }
+
+    template<class Rep, class Period>
+    std::cv_status Push(T&& element, const std::chrono::duration<Rep, Period>& timeout) {
+        {
+            std::unique_lock<std::mutex> lock(m_mutex);
+            while (m_queue.size() + 1 > m_capacity) {
+                if (m_condition.wait_for(lock, timeout) == std::cv_status::timeout) {
+                    return std::cv_status::timeout;
+                }
+            }
+            m_queue.push(std::move(element));
+        }
+        m_condition.notify_one();
+        return std::cv_status::no_timeout;
+    }
+
     T Pop() {
         T element;
         {
@@ -81,6 +112,24 @@ public:
             m_queue.pop();
         }
         m_condition.notify_one();
+    }
+
+    template<class Rep, class Period>
+    std::cv_status Pop(T* element, const std::chrono::duration<Rep, Period>& timeout) {
+        {
+            std::unique_lock<std::mutex> lock(m_mutex);
+            while (m_queue.empty()) {
+                if (m_condition.wait_for(lock, timeout) == std::cv_status::timeout) {
+                    return std::cv_status::timeout;
+                }
+            }
+            if (element != nullptr) {
+                *element = std::move(m_queue.front());
+            }
+            m_queue.pop();
+        }
+        m_condition.notify_one();
+        return std::cv_status::no_timeout;
     }
 
     void Clear() {

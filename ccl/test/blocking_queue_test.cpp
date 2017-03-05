@@ -157,21 +157,67 @@ TEST(BlockingQueue, Push_NonBlocking) {
 
 TEST(BlockingQueue, Pop_Blocking) {
     // setup:
-    const std::string pushedElement = "element";
+    const std::string pushed = "element";
 
     // when:
     BlockingQueue<std::string> queue;
     std::thread th([](BlockingQueue<std::string>& queue, const std::string& element) {
         util::doHeavyTask();
         queue.Push(element);
-    }, std::ref(queue), std::ref(pushedElement));
-    std::string poppedElement = queue.Pop();
+    }, std::ref(queue), std::ref(pushed));
+    std::string popped = queue.Pop();
 
     // then:
-    EXPECT_EQ(pushedElement, poppedElement);
+    EXPECT_EQ(pushed, popped);
 
     // clenup:
     th.join();
+}
+
+TEST(BlockingQueue, Push_Timeout) {
+    // when:
+    BlockingQueue<int> queue(1);
+    queue.Push(1);
+    std::cv_status status = queue.Push(2, std::chrono::milliseconds(10));
+
+    // then:
+    EXPECT_EQ(std::cv_status::timeout, status);
+}
+
+TEST(BlockingQueue, Push_NoTimeout) {
+    // when:
+    BlockingQueue<int> queue;
+    std::cv_status status = queue.Push(1, std::chrono::seconds(10));
+
+    // then:
+    EXPECT_EQ(std::cv_status::no_timeout, status);
+}
+
+TEST(BlockingQueue, Pop_Timeout) {
+    // when:
+    BlockingQueue<int> queue;
+    int unused;
+    std::cv_status status = queue.Pop(&unused, std::chrono::milliseconds(10));
+
+    // then:
+    EXPECT_EQ(std::cv_status::timeout, status);
+}
+
+TEST(BlockingQueue, Pop_NoTimeout) {
+    // setup:
+    int pushed = 1;
+
+    // when:
+    BlockingQueue<int> queue;
+    queue.Push(pushed);
+
+    // and:
+    int popped;
+    std::cv_status status = queue.Pop(&popped, std::chrono::seconds(10));
+
+    // then:
+    EXPECT_EQ(std::cv_status::no_timeout, status);
+    EXPECT_EQ(pushed, popped);
 }
 
 TEST(BlockingQueue, PushLvalue_FunctionObject) {
