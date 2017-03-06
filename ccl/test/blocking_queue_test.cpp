@@ -81,7 +81,7 @@ TEST(BlockingQueue, PushRvalue_MoveSemantics) {
     EXPECT_EQ(1, Object::moveConstructorCount);
 }
 
-TEST(BlockingQueue, PopReturn_MoveSemantics) {
+TEST(BlockingQueue, Pop_MoveSemantics) {
     // setup:
     BlockingQueue<Object> queue;
     queue.Push(Object{});
@@ -90,21 +90,6 @@ TEST(BlockingQueue, PopReturn_MoveSemantics) {
     // when:
     Object obj = queue.Pop();
     obj.DoNothing();
-
-    // then:
-    EXPECT_EQ(0, Object::copyAssignmentCount);
-    EXPECT_EQ(1, Object::moveAssignmentCount);
-}
-
-TEST(BlockingQueue, PopPointer_MoveSemantics) {
-    // setup:
-    BlockingQueue<Object> queue;
-    queue.Push(Object{});
-    Object::ClearCounts();
-
-    // when:
-    Object obj;
-    queue.Pop(&obj);
 
     // then:
     EXPECT_EQ(0, Object::copyAssignmentCount);
@@ -250,8 +235,7 @@ TEST(BlockingQueue, PushRvalue_FunctionObject) {
     });
 
     // and:
-    std::function<void()> task;
-    queue.Pop(&task);
+    std::function<void()> task = queue.Pop();
     task();
 
     // then:

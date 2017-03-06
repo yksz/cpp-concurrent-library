@@ -100,20 +100,6 @@ public:
         return element;
     }
 
-    void Pop(T* element) {
-        {
-            std::unique_lock<std::mutex> lock(m_mutex);
-            while (m_queue.empty()) {
-                m_condition.wait(lock);
-            }
-            if (element != nullptr) {
-                *element = std::move(m_queue.front());
-            }
-            m_queue.pop();
-        }
-        m_condition.notify_one();
-    }
-
     template<class Rep, class Period>
     std::cv_status Pop(T* element, const std::chrono::duration<Rep, Period>& timeout) {
         {

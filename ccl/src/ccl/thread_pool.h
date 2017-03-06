@@ -23,8 +23,7 @@ public:
         for (size_t i = 0; i < nthreads; i++) {
             auto worker = [this]() {
                 while (true) {
-                    std::function<void()> task;
-                    m_queue.Pop(&task);
+                    std::function<void()> task = m_queue.Pop();
                     if (task.target_type() == m_poison.target_type()) {
                         return;
                     }
