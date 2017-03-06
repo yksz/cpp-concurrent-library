@@ -182,7 +182,7 @@ TEST(BlockingQueue, Pop_Timeout) {
     // when:
     BlockingQueue<int> queue;
     int unused;
-    std::cv_status status = queue.Pop(&unused, std::chrono::milliseconds(10));
+    std::cv_status status = queue.Pop(std::chrono::milliseconds(10), &unused);
 
     // then:
     EXPECT_EQ(std::cv_status::timeout, status);
@@ -198,7 +198,7 @@ TEST(BlockingQueue, Pop_NoTimeout) {
 
     // and:
     int popped;
-    std::cv_status status = queue.Pop(&popped, std::chrono::seconds(10));
+    std::cv_status status = queue.Pop(std::chrono::seconds(10), &popped);
 
     // then:
     EXPECT_EQ(std::cv_status::no_timeout, status);
