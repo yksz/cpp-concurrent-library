@@ -40,6 +40,7 @@ TEST(Actor, ShutdownNow) {
     // when:
     {
         Actor actor([&](any&& msg) {
+            util::await();
             if (msg.type() == typeid(int)) {
                 sum += any_cast<int>(msg);
             }

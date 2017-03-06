@@ -9,8 +9,8 @@ using namespace std::chrono;
 
 TEST(Scheduler, Schedule) {
     // setup:
-    const int after1 = 100;
-    const int after2 = 200;
+    const int after1 =  50;
+    const int after2 = 100;
     auto now = system_clock::now();
     auto startTime1 = now + milliseconds(after1);
     auto startTime2 = now + milliseconds(after2);
@@ -37,7 +37,7 @@ TEST(Scheduler, Schedule) {
 
 TEST(Scheduler, SchedulePeriodically) {
     // setup:
-    const int period = 100;
+    const int period = 50;
     const int repeatCount = 2;
     auto now = system_clock::now();
     int count = 0;
