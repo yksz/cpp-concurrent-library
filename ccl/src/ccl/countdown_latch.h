@@ -18,21 +18,22 @@ public:
     CountdownLatch(const CountdownLatch&) = delete;
     CountdownLatch& operator=(const CountdownLatch&) = delete;
 
-    template<class Rep, class Period>
-    void Await(const std::chrono::duration<Rep, Period>& timeout) {
-        std::unique_lock<std::mutex> lock(m_mutex);
-        while (m_count > 0) {
-            if (m_condition.wait_for(lock, timeout) == std::cv_status::timeout) {
-                return;
-            }
-        }
-    }
-
     void Await() {
         std::unique_lock<std::mutex> lock(m_mutex);
         while (m_count > 0) {
             m_condition.wait(lock);
         }
+    }
+
+    template<class Rep, class Period>
+    std::cv_status Await(const std::chrono::duration<Rep, Period>& timeout) {
+        std::unique_lock<std::mutex> lock(m_mutex);
+        while (m_count > 0) {
+            if (m_condition.wait_for(lock, timeout) == std::cv_status::timeout) {
+                return std::cv_status::timeout;
+            }
+        }
+        return std::cv_status::no_timeout;
     }
 
     void CountDown() {
