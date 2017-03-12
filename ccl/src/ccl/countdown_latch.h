@@ -43,7 +43,7 @@ public:
         }
         m_count--;
         if (m_count == 0) {
-            m_condition.notify_one();
+            m_condition.notify_all();
         }
     }
 

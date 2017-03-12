@@ -26,6 +26,30 @@ TEST(CountdownLatch, AwaitAndCountDown) {
     EXPECT_EQ(0, latch.GetCount());
 }
 
+TEST(CountdownLatch, AwaitAndCountDown_Gate) {
+    // setup:
+    const int nthreads = 10;
+
+    // when:
+    CountdownLatch startGate(1);
+    CountdownLatch endGate(nthreads);
+    for (int i = 0; i < nthreads; i++) {
+        std::thread th([&]() {
+            startGate.Await();
+            endGate.CountDown();
+        });
+        th.detach();
+    }
+
+    // and: start and await the threads
+    startGate.CountDown();
+    endGate.Await();
+
+    // then:
+    EXPECT_EQ(0, startGate.GetCount());
+    EXPECT_EQ(0, endGate.GetCount());
+}
+
 TEST(CountdownLatch, Await_Timeout) {
     // when:
     CountdownLatch latch;
