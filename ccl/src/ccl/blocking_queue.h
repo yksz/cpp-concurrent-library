@@ -26,7 +26,7 @@ public:
 
     bool Empty() {
         std::lock_guard<std::mutex> lock(m_mutex);
-        return m_queue.empty();
+        return isEmpty();
     }
 
     size_t Size() {
@@ -35,54 +35,58 @@ public:
     }
 
     void Push(const T& element) {
-        {
-            std::unique_lock<std::mutex> lock(m_mutex);
-            while (m_queue.size() + 1 > m_capacity) {
-                m_condition.wait(lock);
-            }
-            m_queue.push(element);
+        std::unique_lock<std::mutex> lock(m_mutex);
+        while (isFull()) {
+            m_condition.wait(lock);
         }
-        m_condition.notify_one();
+        bool wasEmpty = isEmpty();
+        m_queue.push(element);
+        if (wasEmpty) {
+            m_condition.notify_all();
+        }
     }
 
     void Push(T&& element) {
-        {
-            std::unique_lock<std::mutex> lock(m_mutex);
-            while (m_queue.size() + 1 > m_capacity) {
-                m_condition.wait(lock);
-            }
-            m_queue.push(std::move(element));
+        std::unique_lock<std::mutex> lock(m_mutex);
+        while (isFull()) {
+            m_condition.wait(lock);
         }
-        m_condition.notify_one();
+        bool wasEmpty = isEmpty();
+        m_queue.push(std::move(element));
+        if (wasEmpty) {
+            m_condition.notify_all();
+        }
     }
 
     template<class Rep, class Period>
     std::cv_status Push(const T& element, const std::chrono::duration<Rep, Period>& timeout) {
-        {
-            std::unique_lock<std::mutex> lock(m_mutex);
-            while (m_queue.size() + 1 > m_capacity) {
-                if (m_condition.wait_for(lock, timeout) == std::cv_status::timeout) {
-                    return std::cv_status::timeout;
-                }
+        std::unique_lock<std::mutex> lock(m_mutex);
+        while (isFull()) {
+            if (m_condition.wait_for(lock, timeout) == std::cv_status::timeout) {
+                return std::cv_status::timeout;
             }
-            m_queue.push(element);
         }
-        m_condition.notify_one();
+        bool wasEmpty = isEmpty();
+        m_queue.push(element);
+        if (wasEmpty) {
+            m_condition.notify_all();
+        }
         return std::cv_status::no_timeout;
     }
 
     template<class Rep, class Period>
     std::cv_status Push(T&& element, const std::chrono::duration<Rep, Period>& timeout) {
-        {
-            std::unique_lock<std::mutex> lock(m_mutex);
-            while (m_queue.size() + 1 > m_capacity) {
-                if (m_condition.wait_for(lock, timeout) == std::cv_status::timeout) {
-                    return std::cv_status::timeout;
-                }
+        std::unique_lock<std::mutex> lock(m_mutex);
+        while (isFull()) {
+            if (m_condition.wait_for(lock, timeout) == std::cv_status::timeout) {
+                return std::cv_status::timeout;
             }
-            m_queue.push(std::move(element));
         }
-        m_condition.notify_one();
+        bool wasEmpty = isEmpty();
+        m_queue.push(std::move(element));
+        if (wasEmpty) {
+            m_condition.notify_all();
+        }
         return std::cv_status::no_timeout;
     }
 
@@ -93,28 +97,32 @@ public:
             while (m_queue.empty()) {
                 m_condition.wait(lock);
             }
+            bool wasFull = isFull();
             element = std::move(m_queue.front());
             m_queue.pop();
+            if (wasFull) {
+                m_condition.notify_all();
+            }
         }
-        m_condition.notify_one();
         return element;
     }
 
     template<class Rep, class Period>
     std::cv_status Pop(const std::chrono::duration<Rep, Period>& timeout, T* element) {
-        {
-            std::unique_lock<std::mutex> lock(m_mutex);
-            while (m_queue.empty()) {
-                if (m_condition.wait_for(lock, timeout) == std::cv_status::timeout) {
-                    return std::cv_status::timeout;
-                }
+        std::unique_lock<std::mutex> lock(m_mutex);
+        while (m_queue.empty()) {
+            if (m_condition.wait_for(lock, timeout) == std::cv_status::timeout) {
+                return std::cv_status::timeout;
             }
-            if (element != nullptr) {
-                *element = std::move(m_queue.front());
-            }
-            m_queue.pop();
         }
-        m_condition.notify_one();
+        bool wasFull = isFull();
+        if (element != nullptr) {
+            *element = std::move(m_queue.front());
+        }
+        m_queue.pop();
+        if (wasFull) {
+            m_condition.notify_all();
+        }
         return std::cv_status::no_timeout;
     }
 
@@ -123,6 +131,15 @@ public:
         while (!m_queue.empty()) {
             m_queue.pop();
         }
+    }
+
+private:
+    bool isEmpty() {
+        return m_queue.empty();
+    }
+
+    bool isFull() {
+        return m_queue.size() + 1 > m_capacity;
     }
 };
 

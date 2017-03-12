@@ -65,7 +65,9 @@ TEST(BlockingQueue, PushLvalue_MoveSemantics) {
 
     // then:
     EXPECT_EQ(1, Object::copyConstructorCount);
+    EXPECT_EQ(0, Object::copyAssignmentCount);
     EXPECT_EQ(0, Object::moveConstructorCount);
+    EXPECT_EQ(0, Object::moveAssignmentCount);
 }
 
 TEST(BlockingQueue, PushRvalue_MoveSemantics) {
@@ -78,7 +80,9 @@ TEST(BlockingQueue, PushRvalue_MoveSemantics) {
 
     // then:
     EXPECT_EQ(0, Object::copyConstructorCount);
+    EXPECT_EQ(0, Object::copyAssignmentCount);
     EXPECT_EQ(1, Object::moveConstructorCount);
+    EXPECT_EQ(0, Object::moveAssignmentCount);
 }
 
 TEST(BlockingQueue, Pop_MoveSemantics) {
@@ -92,7 +96,9 @@ TEST(BlockingQueue, Pop_MoveSemantics) {
     obj.DoNothing();
 
     // then:
+    EXPECT_EQ(0, Object::copyConstructorCount);
     EXPECT_EQ(0, Object::copyAssignmentCount);
+    EXPECT_EQ(0, Object::moveConstructorCount);
     EXPECT_EQ(1, Object::moveAssignmentCount);
 }
 
