@@ -7,7 +7,7 @@ This library's main features:
 - Actor
 - Blocking queue
 - Countdown latch
-- Publish-subscriber
+- Publish-subscribe
 - Scheduler
 - Thread pool
 
