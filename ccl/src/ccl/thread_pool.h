@@ -12,14 +12,14 @@ namespace ccl {
 
 class ThreadPool final {
 private:
-    std::atomic<bool> m_shutdownNow;
     const std::function<void()> m_poison;
     std::vector<std::thread> m_threads;
     BlockingQueue<std::function<void()>> m_queue;
+    std::atomic<bool> m_shutdownNow;
 
 public:
-    explicit ThreadPool(size_t nthreads, size_t queueSize = SIZE_MAX)
-            : m_shutdownNow(false), m_queue(queueSize) {
+    explicit ThreadPool(size_t nthreads, size_t queueCapacity = SIZE_MAX)
+            : m_queue(queueCapacity), m_shutdownNow(false) {
         for (size_t i = 0; i < nthreads; i++) {
             auto worker = [this]() {
                 while (true) {
