@@ -94,7 +94,7 @@ public:
         T element;
         {
             std::unique_lock<std::mutex> lock(m_mutex);
-            while (m_queue.empty()) {
+            while (isEmpty()) {
                 m_condition.wait(lock);
             }
             bool wasFull = isFull();
@@ -110,7 +110,7 @@ public:
     template<class Rep, class Period>
     std::cv_status Pop(const std::chrono::duration<Rep, Period>& timeout, T* element) {
         std::unique_lock<std::mutex> lock(m_mutex);
-        while (m_queue.empty()) {
+        while (isEmpty()) {
             if (m_condition.wait_for(lock, timeout) == std::cv_status::timeout) {
                 return std::cv_status::timeout;
             }
@@ -128,7 +128,7 @@ public:
 
     void Clear() {
         std::lock_guard<std::mutex> lock(m_mutex);
-        while (!m_queue.empty()) {
+        while (!isEmpty()) {
             m_queue.pop();
         }
     }
