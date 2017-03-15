@@ -249,17 +249,27 @@ TEST(BlockingQueue, PushRvalue_FunctionObject) {
 }
 
 TEST(BlockingQueue, Clear) {
+    // setup:
     const int count = 100;
+    const int last = -1;
 
-    // when:
-    BlockingQueue<int> queue;
+    // when: push until capcity is full
+    BlockingQueue<int> queue(count);
     for (int i = 0; i < count; i++) {
         queue.Push(i);
     }
 
-    // and:
+    // and: wait until popped
+    std::thread th([&]() {
+        queue.Push(last);
+    });
+
+    // and: wait until pushed the last element and clear
+    util::await();
     queue.Clear();
+    th.join();
 
     // then:
+    EXPECT_EQ(last, queue.Pop());
     EXPECT_TRUE(queue.Empty());
 }

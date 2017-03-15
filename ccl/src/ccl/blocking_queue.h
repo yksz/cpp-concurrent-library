@@ -128,8 +128,12 @@ public:
 
     void Clear() {
         std::lock_guard<std::mutex> lock(m_mutex);
+        bool wasFull = isFull();
         while (!isEmpty()) {
             m_queue.pop();
+        }
+        if (wasFull) {
+            m_condition.notify_all();
         }
     }
 
