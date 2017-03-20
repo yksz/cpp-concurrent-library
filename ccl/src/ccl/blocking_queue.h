@@ -14,11 +14,11 @@ class BlockingQueue final {
 private:
     const size_t m_capacity;
     std::queue<T> m_queue;
-    std::condition_variable m_condition;
     std::mutex m_mutex;
+    std::condition_variable m_condition;
 
 public:
-    BlockingQueue(size_t capacity = SIZE_MAX) : m_capacity(capacity ? capacity : SIZE_MAX) {};
+    BlockingQueue(size_t capacity = SIZE_MAX) : m_capacity(capacity ? capacity : SIZE_MAX) {}
 
     ~BlockingQueue() = default;
     BlockingQueue(const BlockingQueue&) = delete;

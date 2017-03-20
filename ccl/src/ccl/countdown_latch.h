@@ -8,8 +8,8 @@ namespace ccl {
 class CountdownLatch final {
 private:
     unsigned int m_count;
-    std::condition_variable m_condition;
     std::mutex m_mutex;
+    std::condition_variable m_condition;
 
 public:
     CountdownLatch(unsigned int count = 1) : m_count(count) {}
