@@ -49,6 +49,19 @@ public:
         return task->get_future();
     }
 
+    std::future<any> Send(any&& message) {
+        struct Func {
+            Actor* actor;
+            any msg;
+            any operator()() {
+                return actor->m_onReceive(msg);
+            }
+        };
+        auto task = std::make_shared<std::packaged_task<any()>>(Func{this, std::move(message)});
+        m_pool->Dispatch([task]() { (*task)(); });
+        return task->get_future();
+    }
+
     void SetShutdownNow(bool shutdownNow) {
         m_pool->SetShutdownNow(shutdownNow);
     }
