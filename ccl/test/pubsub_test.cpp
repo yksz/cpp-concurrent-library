@@ -10,10 +10,10 @@ TEST(PubSub, Subscribe) {
     const std::string topic2 = "/topic/2";
 
     // when:
-    auto actor1 = std::make_shared<Actor>([](any&& msg) {
+    auto actor1 = std::make_shared<Actor>([](any& msg) {
         return 0;
     });
-    auto actor2 = std::make_shared<Actor>([](any&& msg) {
+    auto actor2 = std::make_shared<Actor>([](any& msg) {
         return 0;
     });
     PubSub broker;
@@ -30,10 +30,10 @@ TEST(PubSub, Unsubscribe) {
     const std::string topic = "/topic";
 
     // when:
-    auto actor1 = std::make_shared<Actor>([](any&& msg) {
+    auto actor1 = std::make_shared<Actor>([](any& msg) {
         return 0;
     });
-    auto actor2 = std::make_shared<Actor>([](any&& msg) {
+    auto actor2 = std::make_shared<Actor>([](any& msg) {
         return 0;
     });
     PubSub broker;
@@ -52,14 +52,14 @@ TEST(PubSub, Publish) {
     CountdownLatch latch(4);
 
     // when:
-    auto actor1 = std::make_shared<Actor>([&](any&& msg) {
+    auto actor1 = std::make_shared<Actor>([&](any& msg) {
         if (msg.type() == typeid(std::string)) {
             recvMsg1 += any_cast<std::string>(msg);
         }
         latch.CountDown();
         return 0;
     });
-    auto actor2 = std::make_shared<Actor>([&](any&& msg) {
+    auto actor2 = std::make_shared<Actor>([&](any& msg) {
         if (msg.type() == typeid(std::string)) {
             recvMsg2 += any_cast<std::string>(msg);
         }
@@ -85,14 +85,14 @@ TEST(PubSub, Broadcast) {
     CountdownLatch latch(2);
 
     // when:
-    auto actor1 = std::make_shared<Actor>([&](any&& msg) {
+    auto actor1 = std::make_shared<Actor>([&](any& msg) {
         if (msg.type() == typeid(std::string)) {
             recvMsg1 += any_cast<std::string>(msg);
         }
         latch.CountDown();
         return 0;
     });
-    auto actor2 = std::make_shared<Actor>([&](any&& msg) {
+    auto actor2 = std::make_shared<Actor>([&](any& msg) {
         if (msg.type() == typeid(std::string)) {
             recvMsg2 += any_cast<std::string>(msg);
         }
@@ -118,21 +118,21 @@ TEST(PubSub, Multicast_ForwardMatch) {
     CountdownLatch latch(2);
 
     // when:
-    auto actor_a1 = std::make_shared<Actor>([&](any&& msg) {
+    auto actor_a1 = std::make_shared<Actor>([&](any& msg) {
         if (msg.type() == typeid(std::string)) {
             recvMsg1 += any_cast<std::string>(msg);
         }
         latch.CountDown();
         return 0;
     });
-    auto actor_a2 = std::make_shared<Actor>([&](any&& msg) {
+    auto actor_a2 = std::make_shared<Actor>([&](any& msg) {
         if (msg.type() == typeid(std::string)) {
             recvMsg2 += any_cast<std::string>(msg);
         }
         latch.CountDown();
         return 0;
     });
-    auto actor_b2 = std::make_shared<Actor>([&](any&& msg) {
+    auto actor_b2 = std::make_shared<Actor>([&](any& msg) {
         ok = false;
         return 0;
     });
@@ -157,18 +157,18 @@ TEST(PubSub, Multicast_PartialMatch) {
     CountdownLatch latch(2);
 
     // when:
-    auto actor_a1 = std::make_shared<Actor>([&](any&& msg) {
+    auto actor_a1 = std::make_shared<Actor>([&](any& msg) {
         ok = false;
         return 0;
     });
-    auto actor_a2 = std::make_shared<Actor>([&](any&& msg) {
+    auto actor_a2 = std::make_shared<Actor>([&](any& msg) {
         if (msg.type() == typeid(std::string)) {
             recvMsg1 += any_cast<std::string>(msg);
         }
         latch.CountDown();
         return 0;
     });
-    auto actor_b2 = std::make_shared<Actor>([&](any&& msg) {
+    auto actor_b2 = std::make_shared<Actor>([&](any& msg) {
         if (msg.type() == typeid(std::string)) {
             recvMsg2 += any_cast<std::string>(msg);
         }

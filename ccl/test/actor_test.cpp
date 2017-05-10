@@ -19,7 +19,7 @@ TEST(Actor, Send) {
 
     // when:
     {
-        Actor actor([&](any&& msg) {
+        Actor actor([&](any& msg) {
             if (msg.type() == typeid(std::string)) {
                 recvMsg = any_cast<std::string>(msg);
             }
@@ -39,7 +39,7 @@ TEST(Actor, ShutdownNow) {
 
     // when:
     {
-        Actor actor([&](any&& msg) {
+        Actor actor([&](any& msg) {
             util::await();
             if (msg.type() == typeid(int)) {
                 sum += any_cast<int>(msg);
@@ -60,7 +60,7 @@ TEST(ActorNameSystem, Register) {
     // when:
     ActorNameSystem system;
     {
-        auto actor = std::make_shared<Actor>([](any&& msg) {
+        auto actor = std::make_shared<Actor>([](any& msg) {
             return std::string("ok");
         });
         system.Register("actor", actor);
@@ -83,7 +83,7 @@ TEST(ActorNameSystem, Unregister) {
     // when:
     ActorNameSystem system;
     {
-        auto actor = std::make_shared<Actor>([](any&& msg) {
+        auto actor = std::make_shared<Actor>([](any& msg) {
             return 0;
         });
         system.Register("actor", actor);

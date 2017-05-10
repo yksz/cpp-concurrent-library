@@ -22,14 +22,14 @@ using any = boost::any;
 
 class Actor final {
 private:
-    const std::function<any(any&&)> m_onReceive;
+    const std::function<any(any&)> m_onReceive;
     std::shared_ptr<ThreadPool> m_pool;
 
 public:
-    explicit Actor(std::function<any(any&&)>&& onReceive)
+    explicit Actor(std::function<any(any&)>&& onReceive)
             : m_onReceive(std::move(onReceive)), m_pool(std::make_shared<ThreadPool>(1)) {}
 
-    Actor(const std::shared_ptr<ThreadPool>& pool, std::function<any(any&&)>&& onReceive)
+    Actor(const std::shared_ptr<ThreadPool>& pool, std::function<any(any&)>&& onReceive)
             : m_onReceive(std::move(onReceive)), m_pool(pool) {}
 
     ~Actor() = default;
@@ -41,7 +41,7 @@ public:
             Actor* actor;
             any msg;
             any operator()() {
-                return actor->m_onReceive(std::move(msg));
+                return actor->m_onReceive(msg);
             }
         };
         auto task = std::make_shared<std::packaged_task<any()>>(Func{this, message});

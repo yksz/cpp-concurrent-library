@@ -15,7 +15,7 @@ struct Point {
 int main(void) {
     using namespace ccl;
 
-    auto actor = std::make_shared<ccl::Actor>([](any&& msg) -> any {
+    auto actor = std::make_shared<ccl::Actor>([](any& msg) -> any {
         const std::type_info& type = msg.type();
         if (type == typeid(int)) {
             std::cout << "int: " << any_cast<int>(msg) << std::endl;

@@ -49,7 +49,7 @@ public:
 } // namespace
 
 int main(void) {
-    auto actor = std::make_shared<ccl::Actor>([](ccl::any&& msg) -> ccl::any {
+    auto actor = std::make_shared<ccl::Actor>([](ccl::any& msg) -> ccl::any {
         const std::type_info& type = msg.type();
         if (type == typeid(std::shared_ptr<Object>)) {
             auto obj = ccl::any_cast<std::shared_ptr<Object>>(msg);
@@ -65,14 +65,14 @@ int main(void) {
 
     {
         std::cout << "### Better performance" << std::endl;
-        auto obj = std::make_shared<Object>("shared_ptr");
-        auto future = actor->Send(obj);
+        auto msg = std::make_shared<Object>("shared_ptr");
+        auto future = actor->Send(msg);
         future.get();
     }
     std::cout << std::endl;
     {
         std::cout << "### Worse performance" << std::endl;
-        ccl::any msg(Object("not shared_ptr"));
+        auto msg = Object("not shared_ptr");
         auto future = actor->Send(msg);
         future.get();
     }

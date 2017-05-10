@@ -12,25 +12,25 @@ int main(void) {
     std::string recvMsg3;
     std::string recvMsg4;
 
-    auto actor1 = std::make_shared<ccl::Actor>([&](any&& msg) -> any {
+    auto actor1 = std::make_shared<ccl::Actor>([&](any& msg) -> any {
         if (msg.type() == typeid(std::string)) {
             recvMsg1 += any_cast<std::string>(msg);
         }
         return 0;
     });
-    auto actor2 = std::make_shared<ccl::Actor>([&](any&& msg) -> any {
+    auto actor2 = std::make_shared<ccl::Actor>([&](any& msg) -> any {
         if (msg.type() == typeid(std::string)) {
             recvMsg2 += any_cast<std::string>(msg);
         }
         return 0;
     });
-    auto actor3 = std::make_shared<ccl::Actor>([&](any&& msg) -> any {
+    auto actor3 = std::make_shared<ccl::Actor>([&](any& msg) -> any {
         if (msg.type() == typeid(std::string)) {
             recvMsg3 += any_cast<std::string>(msg);
         }
         return 0;
     });
-    auto actor4 = std::make_shared<ccl::Actor>([&](any&& msg) -> any {
+    auto actor4 = std::make_shared<ccl::Actor>([&](any& msg) -> any {
         if (msg.type() == typeid(std::string)) {
             recvMsg4 += any_cast<std::string>(msg);
         }
