@@ -20,6 +20,9 @@ cd build
 make
 sudo make install
 ```
+or
+
+Copy files in src directory to your project
 
 # System Requirements
 C++11 or later
