@@ -53,7 +53,7 @@ public:
                     auto now = Scheduler::ToUnixTime(system_clock::now());
                     if (schedTask.executionTime <= now) { // fired
                         m_queue.pop();
-                        if (schedTask.period > 0 && schedTask.repeatCount > 0) { // repeat
+                        if (schedTask.period > 0 && schedTask.repeatCount != 0) { // repeat
                             schedTask.executionTime += schedTask.period;
                             schedTask.repeatCount--;
                             m_queue.push(schedTask); // reschedule
@@ -95,7 +95,7 @@ public:
     }
 
     // Schedules the task for repeated execution.
-    // Executes the task forever if repeatCount is 0.
+    // Executes the task forever if repeatCount is less than 0.
     void SchedulePeriodically(int64_t firstTime, int64_t period, int16_t repeatCount,
             std::function<void()>&& task) {
         {
