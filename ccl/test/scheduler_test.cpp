@@ -18,14 +18,14 @@ TEST(Scheduler, Schedule) {
 
     // when:
     Scheduler scheduler;
-    scheduler.Schedule(Scheduler::ToUnixTime(startTime1), [&]() {
+    scheduler.Schedule(startTime1, [&]() {
         auto now = system_clock::now();
         auto diff = duration_cast<milliseconds>(now - baseTime);
         // then:
         EXPECT_NEAR(after1, diff.count(), after1 * 0.1);
         latch.CountDown();
     });
-    scheduler.Schedule(Scheduler::ToUnixTime(startTime2), [&]() {
+    scheduler.Schedule(startTime2, [&]() {
         auto now = system_clock::now();
         auto diff = duration_cast<milliseconds>(now - baseTime);
         // then:
@@ -35,21 +35,21 @@ TEST(Scheduler, Schedule) {
     latch.Await();
 }
 
-TEST(Scheduler, SchedulePeriodically) {
+TEST(Scheduler, Schedule_Periodically) {
     // setup:
-    const int period = 50;
     const int repeatCount = 2;
     auto firstTime = system_clock::now();
+    auto period = milliseconds(50);
     int count = 0;
     CountdownLatch latch(repeatCount + 1);
 
     // when:
     Scheduler scheduler;
-    scheduler.SchedulePeriodically(Scheduler::ToUnixTime(firstTime), period, repeatCount, [&]() {
+    scheduler.Schedule(firstTime, period, repeatCount, [&]() {
         auto now = system_clock::now();
         auto diff = duration_cast<milliseconds>(now - firstTime);
         // then:
-        EXPECT_NEAR(count * period, diff.count(), period * 0.1);
+        EXPECT_NEAR(count * period.count(), diff.count(), period.count() * 0.1);
         count++;
         latch.CountDown();
     });
@@ -58,9 +58,9 @@ TEST(Scheduler, SchedulePeriodically) {
 
 TEST(Scheduler, SchedulePeriodically_Forever) {
     // setup:
-    const int period = 5;
     const int repeatCount = -1; // endless
     auto firstTime = system_clock::now();
+    auto period = milliseconds(5);
     const int stopCount = 10;
     int count = 0;
     CountdownLatch latch(stopCount);
@@ -68,7 +68,7 @@ TEST(Scheduler, SchedulePeriodically_Forever) {
     // when:
     {
         Scheduler scheduler;
-        scheduler.SchedulePeriodically(Scheduler::ToUnixTime(firstTime), period, repeatCount, [&]() {
+        scheduler.Schedule(firstTime, period, repeatCount, [&]() {
             count++;
             latch.CountDown();
         });

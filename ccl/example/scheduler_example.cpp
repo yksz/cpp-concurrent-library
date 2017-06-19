@@ -13,10 +13,10 @@ int main(void) {
     int sec = time(nullptr) % 60;
     int waitTime = (10 - sec % 10) * 1000; // [ms]
     auto firstTime = system_clock::now() + milliseconds(waitTime); // at hh:mm:s0
-    auto firstUnixTime = ccl::Scheduler::ToUnixTime(firstTime);
+    auto period = milliseconds(kPeriod); // [ms]
 
     ccl::Scheduler scheduler;
-    scheduler.SchedulePeriodically(firstUnixTime, kPeriod, kRepeatCount, []() {
+    scheduler.Schedule(firstTime, period, kRepeatCount, []() {
         time_t now = time(nullptr);
         char s[16];
         strftime(s, sizeof(s), "%H:%M:%S", localtime(&now));

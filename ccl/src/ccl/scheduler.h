@@ -15,14 +15,14 @@ namespace ccl {
 
 struct scheduledTask {
     std::function<void()> task;
-    int64_t executionTime; // unix time [ms]
+    int64_t execTime; // Unix time [ms]
     int64_t period; // [ms]
     int16_t repeatCount;
 };
 
 struct scheduledTaskComparator {
     bool operator()(const scheduledTask& a, const scheduledTask& b) {
-        return a.executionTime > b.executionTime;
+        return a.execTime > b.execTime;
     }
 };
 
@@ -50,17 +50,17 @@ public:
                         return;
                     }
                     schedTask = m_queue.top();
-                    auto now = Scheduler::ToUnixTime(system_clock::now());
-                    if (schedTask.executionTime <= now) { // fired
+                    auto now = Scheduler::toUnixTime(system_clock::now());
+                    if (schedTask.execTime <= now) { // fired
                         m_queue.pop();
                         if (schedTask.period > 0 && schedTask.repeatCount != 0) { // repeat
-                            schedTask.executionTime += schedTask.period;
+                            schedTask.execTime += schedTask.period;
                             schedTask.repeatCount--;
                             m_queue.push(schedTask); // reschedule
                         }
                     } else {
-                        auto execTime = Scheduler::ToTimePoint<system_clock>(schedTask.executionTime);
-                        m_condition.wait_until(lock, execTime);
+                        auto execTp = Scheduler::toTimePoint<system_clock>(schedTask.execTime);
+                        m_condition.wait_until(lock, execTp);
                         continue;
                     }
                 }
@@ -86,33 +86,40 @@ public:
     Scheduler(const Scheduler&) = delete;
     Scheduler& operator=(const Scheduler&) = delete;
 
-    void Schedule(int64_t startTime, std::function<void()>&& task) {
+    template<class Clock>
+    void Schedule(const std::chrono::time_point<Clock>& startTime, std::function<void()>&& task) {
+        int64_t startUnixTime = Scheduler::toUnixTime(startTime);
         {
             std::lock_guard<std::mutex> lock(m_mutex);
-            m_queue.push(scheduledTask{task, startTime, 0, 0});
+            m_queue.push(scheduledTask{task, startUnixTime, 0, 0});
         }
         m_condition.notify_one();
     }
+
 
     // Schedules the task for repeated execution.
     // Executes the task forever if repeatCount is less than 0.
-    void SchedulePeriodically(int64_t firstTime, int64_t period, int16_t repeatCount,
-            std::function<void()>&& task) {
+    template<class Clock, class Rep, class Period>
+    void Schedule(const std::chrono::time_point<Clock>& firstTime,
+            const std::chrono::duration<Rep, Period>& period, int16_t repeatCount, std::function<void()>&& task) {
+        int64_t firstUnixTime = Scheduler::toUnixTime(firstTime);
+        int64_t periodMilliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(period).count();
         {
             std::lock_guard<std::mutex> lock(m_mutex);
-            m_queue.push(scheduledTask{task, firstTime, period, repeatCount});
+            m_queue.push(scheduledTask{task, firstUnixTime, periodMilliseconds, repeatCount});
         }
         m_condition.notify_one();
     }
 
-    template<typename T>
-    static int64_t ToUnixTime(const std::chrono::time_point<T>& tp) {
+private:
+    template<typename Clock>
+    static int64_t toUnixTime(const std::chrono::time_point<Clock>& tp) {
         return std::chrono::duration_cast<std::chrono::milliseconds>(tp.time_since_epoch()).count();
     }
 
-    template<typename T>
-    static std::chrono::time_point<T> ToTimePoint(int64_t unixTime) {
-        return std::chrono::time_point<T>(std::chrono::duration<int64_t, std::milli>(unixTime));
+    template<typename Clock>
+    static std::chrono::time_point<Clock> toTimePoint(int64_t unixTime) {
+        return std::chrono::time_point<Clock>(std::chrono::duration<int64_t, std::milli>(unixTime));
     }
 };
 
