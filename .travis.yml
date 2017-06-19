@@ -27,3 +27,7 @@ script:
   - cd eclipse
   - make
   - make test
+
+branches:
+  only:
+    - master
