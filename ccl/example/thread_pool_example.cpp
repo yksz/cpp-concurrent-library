@@ -6,19 +6,23 @@ static const int kNthreads = 2;
 static const int kDispatchCount = 5;
 
 int main(void) {
-    ccl::ThreadPool pool(kNthreads);
     std::mutex mutex;
     int count = 0;
-    for (int i = 0; i < kDispatchCount; i++) {
-        pool.Dispatch([&]() {
-            {
-                std::lock_guard<std::mutex> lock(mutex);
-                std::cout << "Thread_" << std::this_thread::get_id()
-                          << ": count=" << count << std::endl;
-                count++;
-            }
-        });
+
+    {
+        ccl::ThreadPool pool(kNthreads);
+        for (int i = 0; i < kDispatchCount; i++) {
+            pool.Dispatch([&]() {
+                {
+                    std::lock_guard<std::mutex> lock(mutex);
+                    std::cout << "Thread_" << std::this_thread::get_id()
+                              << ": count=" << count << std::endl;
+                    count++;
+                }
+            });
+        }
     }
+    // wait for all tasks to complete
 
     // Output:
     // Thread_<ID>: count=0
