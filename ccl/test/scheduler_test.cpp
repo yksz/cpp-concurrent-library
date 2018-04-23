@@ -78,3 +78,22 @@ TEST(Scheduler, SchedulePeriodically_Forever) {
     // then:
     EXPECT_EQ(stopCount, count);
 }
+
+TEST(Scheduler, Cancel) {
+    // setup:
+    const int repeatCount = 5;
+    auto firstTime = system_clock::now();
+    auto period = milliseconds(1);
+    std::atomic<int> count(0);
+
+    // when:
+    Scheduler scheduler;
+    scheduler.Schedule(firstTime, period, repeatCount, [&]() {
+        count++;
+    });
+    scheduler.Cancel();
+    std::this_thread::sleep_for(milliseconds(repeatCount));
+
+    // then:
+    EXPECT_GT(repeatCount, count);
+}

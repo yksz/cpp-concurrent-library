@@ -31,8 +31,8 @@ private:
     bool m_stopped;
     std::unique_ptr<std::thread> m_thread;
     std::priority_queue<scheduledTask, std::vector<scheduledTask>, scheduledTaskComparator> m_queue;
-    std::condition_variable m_condition;
     std::mutex m_mutex;
+    std::condition_variable m_condition;
 
 public:
     Scheduler() : m_stopped(false) {
@@ -74,10 +74,7 @@ public:
         {
             std::lock_guard<std::mutex> lock(m_mutex);
             m_stopped = true;
-            // clear
-            while (!m_queue.empty()) {
-                m_queue.pop();
-            }
+            clearQueue();
         }
         m_condition.notify_one();
         m_thread->join();
@@ -96,7 +93,6 @@ public:
         m_condition.notify_one();
     }
 
-
     // Schedules the task for repeated execution.
     // Executes the task forever if repeatCount is less than 0.
     template<class Clock, class Rep, class Period>
@@ -111,6 +107,15 @@ public:
         m_condition.notify_one();
     }
 
+    // Cancel all scheduled tasks.
+    void Cancel() {
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            clearQueue();
+        }
+        m_condition.notify_one();
+    }
+
 private:
     template<typename Clock>
     static int64_t toUnixTime(const std::chrono::time_point<Clock>& tp) {
@@ -120,6 +125,12 @@ private:
     template<typename Clock>
     static std::chrono::time_point<Clock> toTimePoint(int64_t unixTime) {
         return std::chrono::time_point<Clock>(std::chrono::duration<int64_t, std::milli>(unixTime));
+    }
+
+    void clearQueue() {
+        while (!m_queue.empty()) {
+            m_queue.pop();
+        }
     }
 };
 
