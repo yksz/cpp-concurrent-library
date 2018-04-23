@@ -1,5 +1,6 @@
 #include "ccl/scheduler.h"
 #include <ctime>
+#include <atomic>
 #include <chrono>
 #include <gtest/gtest.h>
 #include "ccl/countdown_latch.h"
@@ -9,8 +10,8 @@ using namespace std::chrono;
 
 TEST(Scheduler, Schedule) {
     // setup:
-    const int after1 =  50;
-    const int after2 = 100;
+    const int after1 = 30;
+    const int after2 = 60;
     auto baseTime = system_clock::now();
     auto startTime1 = baseTime + milliseconds(after1);
     auto startTime2 = baseTime + milliseconds(after2);
@@ -39,7 +40,7 @@ TEST(Scheduler, Schedule_Periodically) {
     // setup:
     const int repeatCount = 2;
     auto firstTime = system_clock::now();
-    auto period = milliseconds(50);
+    auto period = milliseconds(30);
     int count = 0;
     CountdownLatch latch(repeatCount + 1);
 
@@ -62,7 +63,7 @@ TEST(Scheduler, SchedulePeriodically_Forever) {
     auto firstTime = system_clock::now();
     auto period = milliseconds(5);
     const int stopCount = 10;
-    int count = 0;
+    std::atomic<int> count(0);
     CountdownLatch latch(stopCount);
 
     // when:

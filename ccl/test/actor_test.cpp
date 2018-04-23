@@ -35,7 +35,7 @@ TEST(Actor, Send) {
 TEST(Actor, ShutdownNow) {
     // setup:
     const int sendCount = 10000;
-    int sum = 0;
+    std::atomic<int> sum(0);
 
     // when:
     {
