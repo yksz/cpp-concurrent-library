@@ -83,8 +83,8 @@ public:
     Scheduler(const Scheduler&) = delete;
     Scheduler& operator=(const Scheduler&) = delete;
 
-    template<class Clock>
-    void Schedule(const std::chrono::time_point<Clock>& startTime, std::function<void()>&& task) {
+    void Schedule(const std::chrono::time_point<std::chrono::system_clock>& startTime,
+            std::function<void()>&& task) {
         int64_t startUnixTime = Scheduler::toUnixTime(startTime);
         {
             std::lock_guard<std::mutex> lock(m_mutex);
@@ -95,8 +95,8 @@ public:
 
     // Schedules the task for repeated execution.
     // Executes the task forever if repeatCount is less than 0.
-    template<class Clock, class Rep, class Period>
-    void Schedule(const std::chrono::time_point<Clock>& firstTime,
+    template<class Rep, class Period>
+    void Schedule(const std::chrono::time_point<std::chrono::system_clock>& firstTime,
             const std::chrono::duration<Rep, Period>& period, int16_t repeatCount, std::function<void()>&& task) {
         int64_t firstUnixTime = Scheduler::toUnixTime(firstTime);
         int64_t periodMilliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(period).count();
