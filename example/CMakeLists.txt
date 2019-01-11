@@ -14,6 +14,7 @@ set(examples
     actor_example
     actor_performance_example
     blocking_queue_example
+    channel_example
     countdown_latch_example
     pubsub_boost_example
     pubsub_example
