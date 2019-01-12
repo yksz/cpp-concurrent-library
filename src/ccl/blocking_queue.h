@@ -18,7 +18,7 @@ private:
     std::condition_variable m_condition;
 
 public:
-    BlockingQueue(size_t capacity = SIZE_MAX) : m_capacity(capacity ? capacity : SIZE_MAX) {}
+    BlockingQueue(size_t capacity = SIZE_MAX) : m_capacity(capacity != 0 ? capacity : SIZE_MAX) {}
 
     ~BlockingQueue() = default;
     BlockingQueue(const BlockingQueue&) = delete;
