@@ -5,101 +5,33 @@
 #include "ccl/countdown_latch.h"
 #include "util.h"
 
-namespace {
-
-class Object {
-public:
-    static int copyConstructorCount;
-    static int copyAssignmentCount;
-    static int moveConstructorCount;
-    static int moveAssignmentCount;
-
-    static void ClearCounts() {
-        Object::copyConstructorCount = 0;
-        Object::copyAssignmentCount = 0;
-        Object::moveConstructorCount = 0;
-        Object::moveAssignmentCount = 0;
-    }
-
-    Object() = default;
-    ~Object() = default;
-
-    Object(const Object&) {
-        Object::copyConstructorCount++;
-    }
-
-    Object& operator=(const Object&) {
-        Object::copyAssignmentCount++;
-        return *this;
-    }
-
-    Object(Object&&) {
-        Object::moveConstructorCount++;
-    }
-
-    Object& operator=(Object&&) {
-        Object::moveAssignmentCount++;
-        return *this;
-    }
-
-    void DoNothing() {}
-};
-
-int Object::copyConstructorCount = 0;
-int Object::copyAssignmentCount = 0;
-int Object::moveConstructorCount = 0;
-int Object::moveAssignmentCount = 0;
-
-} // namespace
-
 using namespace ccl;
 
-TEST(BlockingQueue, PushLvalue_MoveSemantics) {
-    // setup:
-    BlockingQueue<Object> queue;
-    Object::ClearCounts();
-
+TEST(BlockingQueue, PushLvalueAndPop_MoveSemantics) {
     // when:
-    Object obj;
-    queue.Push(obj);
+    BlockingQueue<util::CopyCounter> queue;
+    util::CopyCounter pushed;
+    queue.Push(pushed);
+    auto counter = queue.Pop();
 
     // then:
-    EXPECT_EQ(1, Object::copyConstructorCount);
-    EXPECT_EQ(0, Object::copyAssignmentCount);
-    EXPECT_EQ(0, Object::moveConstructorCount);
-    EXPECT_EQ(0, Object::moveAssignmentCount);
+    EXPECT_EQ(1, counter.CopyConstructorCount());
+    EXPECT_EQ(0, counter.CopyAssignmentCount());
+    EXPECT_EQ(0, counter.MoveConstructorCount());
+    EXPECT_EQ(1, counter.MoveAssignmentCount());
 }
 
-TEST(BlockingQueue, PushRvalue_MoveSemantics) {
-    // setup:
-    BlockingQueue<Object> queue;
-    Object::ClearCounts();
-
+TEST(BlockingQueue, PushRvalueAndPop_MoveSemantics) {
     // when:
-    queue.Push(Object{});
+    BlockingQueue<util::CopyCounter> queue;
+    queue.Push(util::CopyCounter{});
+    auto counter = queue.Pop();
 
     // then:
-    EXPECT_EQ(0, Object::copyConstructorCount);
-    EXPECT_EQ(0, Object::copyAssignmentCount);
-    EXPECT_EQ(1, Object::moveConstructorCount);
-    EXPECT_EQ(0, Object::moveAssignmentCount);
-}
-
-TEST(BlockingQueue, Pop_MoveSemantics) {
-    // setup:
-    BlockingQueue<Object> queue;
-    queue.Push(Object{});
-    Object::ClearCounts();
-
-    // when:
-    Object obj = queue.Pop();
-    obj.DoNothing();
-
-    // then:
-    EXPECT_EQ(0, Object::copyConstructorCount);
-    EXPECT_EQ(0, Object::copyAssignmentCount);
-    EXPECT_EQ(0, Object::moveConstructorCount);
-    EXPECT_EQ(1, Object::moveAssignmentCount);
+    EXPECT_EQ(0, counter.CopyConstructorCount());
+    EXPECT_EQ(0, counter.CopyAssignmentCount());
+    EXPECT_EQ(1, counter.MoveConstructorCount());
+    EXPECT_EQ(1, counter.MoveAssignmentCount());
 }
 
 TEST(BlockingQueue, Push_Blocking) {
