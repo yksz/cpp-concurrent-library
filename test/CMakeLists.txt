@@ -18,6 +18,7 @@ set(tests
     actor_test
     blocking_queue_test
     channel_test
+    continuation_test
     countdown_latch_test
     pubsub_test
     scheduler_test
