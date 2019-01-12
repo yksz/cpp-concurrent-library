@@ -1,5 +1,4 @@
 #include "ccl/channel.h"
-#include <chrono>
 #include <thread>
 #include <gtest/gtest.h>
 #include "util.h"

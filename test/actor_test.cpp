@@ -1,11 +1,5 @@
 #include "ccl/actor.h"
 #include <atomic>
-#include <chrono>
-#include <condition_variable>
-#include <future>
-#include <memory>
-#include <mutex>
-#include <thread>
 #include <gtest/gtest.h>
 #include "ccl/countdown_latch.h"
 #include "util.h"
@@ -40,7 +34,7 @@ TEST(Actor, ShutdownNow) {
     // when:
     {
         Actor actor([&](any& msg) {
-            util::await();
+            util::Delay();
             if (msg.type() == typeid(int)) {
                 sum += any_cast<int>(msg);
             }

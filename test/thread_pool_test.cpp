@@ -1,6 +1,5 @@
 #include "ccl/thread_pool.h"
 #include <atomic>
-#include <chrono>
 #include <mutex>
 #include <set>
 #include <thread>
@@ -48,7 +47,7 @@ TEST(ThreadPool, ShutdownNow) {
         pool.SetShutdownNow(true);
         for (int i = 0; i < dispatchCount; i++) {
             pool.Dispatch([&]() {
-                util::doHeavyTask();
+                util::DoHeavyTask();
                 count++;
             });
         }

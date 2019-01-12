@@ -54,7 +54,7 @@ TEST(BlockingQueue, Push_Blocking) {
     EXPECT_EQ(capacity, queue.Size());
     queue.Pop();
     queue.Pop();
-    util::await();
+    util::Delay();
     EXPECT_EQ(capacity - 1, queue.Size());
 }
 
@@ -85,7 +85,7 @@ TEST(BlockingQueue, Pop_Blocking) {
     // when:
     BlockingQueue<std::string> queue;
     std::thread th([](BlockingQueue<std::string>& queue, const std::string& element) {
-        util::doHeavyTask();
+        util::DoHeavyTask();
         queue.Push(element);
     }, std::ref(queue), std::ref(pushed));
     std::string popped = queue.Pop();
@@ -197,7 +197,7 @@ TEST(BlockingQueue, Clear) {
     });
 
     // and: wait until pushed the last element and clear
-    util::await();
+    util::Delay();
     queue.Clear();
     th.join();
 

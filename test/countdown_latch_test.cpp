@@ -1,7 +1,6 @@
 #include "ccl/countdown_latch.h"
 #include <chrono>
 #include <thread>
-#include <vector>
 #include <gtest/gtest.h>
 #include "util.h"
 
@@ -15,7 +14,7 @@ TEST(CountdownLatch, AwaitAndCountDown) {
     CountdownLatch latch(count);
     for (int i = 0; i < count; i++) {
         std::thread th([&]() {
-            util::doHeavyTask();
+            util::DoHeavyTask();
             latch.CountDown();
         });
         th.detach();
@@ -54,7 +53,7 @@ TEST(CountdownLatch, Await_Timeout) {
     // when:
     CountdownLatch latch;
     std::thread th([&]() {
-        util::doHeavyTask();
+        util::DoHeavyTask();
         latch.CountDown();
     });
     th.detach();
