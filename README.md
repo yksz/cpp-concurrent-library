@@ -6,6 +6,8 @@ This is a header only concurrent library for C++.
 This library's main features:
 - Actor
 - Blocking queue
+- Channel
+- Continuation
 - Countdown latch
 - Publish-subscribe
 - Scheduler
