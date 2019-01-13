@@ -23,8 +23,8 @@ addons:
       - libboost-dev
 
 script:
-  - ./eclipse.sh
-  - cd eclipse
+  - ./build.sh debug
+  - cd build_debug
   - make
   - make test
 
